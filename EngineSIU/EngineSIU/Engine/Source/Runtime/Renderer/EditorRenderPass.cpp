@@ -15,7 +15,7 @@
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Classes/Actors/Player.h"
-#include "Engine/Classes/Components/Light/LightComponent.h"
+#include "Engine/Classes/Components/Light/LightComponentBase.h"
 #include "Engine/Classes/Components/Light/DirectionalLightComponent.h"
 #include "Engine/Classes/Components/Light/SpotLightComponent.h"
 #include "Engine/Classes/Components/Light/PointLightComponent.h"

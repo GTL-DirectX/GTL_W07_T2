@@ -2,7 +2,7 @@
 
 #include "World/World.h"
 #include "Actors/Player.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"

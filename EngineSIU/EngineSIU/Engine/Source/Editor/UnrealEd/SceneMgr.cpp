@@ -5,7 +5,7 @@
 #include "BaseGizmos/GizmoArrowComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CubeComp.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/SkySphereComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/BillboardComponent.h"

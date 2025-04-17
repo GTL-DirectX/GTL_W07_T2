@@ -6,7 +6,7 @@
 #include "BaseGizmos/GizmoCircleComponent.h"
 #include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Math/JungleMath.h"
 #include "Math/MathUtility.h"
