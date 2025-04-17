@@ -285,7 +285,8 @@ void AEditorPlayer::PickedObjControl()
         switch (ControlMode)
         {
         case CM_TRANSLATION:
-            ControlTranslation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+            // ControlTranslation(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
+            // SLevelEditor에 있음
             break;
         case CM_SCALE:
             ControlScale(PickedActor->GetRootComponent(), Gizmo, deltaX, deltaY);
@@ -342,60 +343,6 @@ void AEditorPlayer::ControlRotation(USceneComponent* Component, UGizmoBaseCompon
     else if (CoordMode == CDM_WORLD)
     {
         Component->SetRelativeRotation(rotationDelta * currentRotation);
-    }
-}
-
-void AEditorPlayer::ControlTranslation(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY)
-{
-    const auto ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
-    const FViewportCamera* ViewTransform = ActiveViewport->GetViewportType() == LVT_Perspective
-                                                        ? &ActiveViewport->PerspectiveCamera
-                                                        : &ActiveViewport->OrthogonalCamera;
-
-    FVector CameraRight = ViewTransform->GetRightVector();
-    FVector CameraUp = ViewTransform->GetUpVector();
-    
-    FVector WorldMoveDirection = (CameraRight * DeltaX + CameraUp * -DeltaY) * 0.1f;
-    
-    if (CoordMode == CDM_LOCAL)
-    {
-        if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
-        {
-            float moveAmount = WorldMoveDirection.Dot(Component->GetForwardVector());
-            Component->AddLocation(Component->GetForwardVector() * moveAmount);
-        }
-        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
-        {
-            float moveAmount = WorldMoveDirection.Dot(Component->GetRightVector());
-            Component->AddLocation(Component->GetRightVector() * moveAmount);
-        }
-        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-        {
-            float moveAmount = WorldMoveDirection.Dot(Component->GetUpVector());
-            Component->AddLocation(Component->GetUpVector() * moveAmount);
-        }
-    }
-    else if (CoordMode == CDM_WORLD)
-    {
-        // 월드 좌표계에서 카메라 방향을 고려한 이동
-        if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowX)
-        {
-            // 카메라의 오른쪽 방향을 X축 이동에 사용
-            FVector moveDir = CameraRight * DeltaX * 0.05f;
-            Component->AddLocation(FVector(moveDir.X, 0.0f, 0.0f));
-        }
-        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowY)
-        {
-            // 카메라의 오른쪽 방향을 Y축 이동에 사용
-            FVector moveDir = CameraRight * DeltaX * 0.05f;
-            Component->AddLocation(FVector(0.0f, moveDir.Y, 0.0f));
-        }
-        else if (Gizmo->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
-        {
-            // 카메라의 위쪽 방향을 Z축 이동에 사용
-            FVector moveDir = CameraUp * -DeltaY * 0.05f;
-            Component->AddLocation(FVector(0.0f, 0.0f, moveDir.Z));
-        }
     }
 }
 
