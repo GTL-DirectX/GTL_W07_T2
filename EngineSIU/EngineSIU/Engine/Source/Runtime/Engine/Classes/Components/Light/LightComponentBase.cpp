@@ -5,6 +5,8 @@ ULightComponentBase::ULightComponentBase()
 {
     Intensity = 1.0f;
     LightColor = FColor::White;
+
+    bCastShadows = true;
 }
 
 ULightComponentBase::~ULightComponentBase()

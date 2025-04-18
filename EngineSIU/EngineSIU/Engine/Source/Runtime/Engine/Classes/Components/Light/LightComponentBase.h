@@ -24,5 +24,12 @@ public:
 protected:
     float Intensity;
     FColor LightColor;
+
+public:
+    bool GetCastShadows() const { return bCastShadows; }
+    void SetCastShadows(bool InCastShadows) { bCastShadows = InCastShadows; }
+
+protected:
+    bool bCastShadows;
     
 };

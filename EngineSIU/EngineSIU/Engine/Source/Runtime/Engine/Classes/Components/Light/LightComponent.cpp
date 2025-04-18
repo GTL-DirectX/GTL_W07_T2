@@ -5,6 +5,11 @@ ULightComponent::ULightComponent()
 {
     AABB.max = { 1.f,1.f,0.1f };
     AABB.min = { -1.f,-1.f,-0.1f };
+
+    ShadowResolutionScale = 1.0f;
+    ShadowBias = 0.5f;
+    ShadowSlopeBias = 0.5f;
+    ShadowSharpen = 0.03;
 }
 
 void ULightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
