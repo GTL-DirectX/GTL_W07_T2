@@ -21,9 +21,10 @@ public:
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
     virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
-    virtual FVector GetForwardVector();
-    virtual FVector GetRightVector();
-    virtual FVector GetUpVector();
+    virtual FVector GetWorldForwardVector() const;
+    virtual FVector GetForwardVector() const;
+    virtual FVector GetRightVector() const;
+    virtual FVector GetUpVector() const;
     
     void AddLocation(FVector InAddValue);
     void AddRotation(FVector InAddValue);

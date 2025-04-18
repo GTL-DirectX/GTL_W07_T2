@@ -35,8 +35,6 @@ public:
     // Shader 관련 함수 (생성/해제 등)
     void CreateShader();
     void ReleaseShader();
-
-    void CreateSampler();
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;
@@ -45,8 +43,6 @@ private:
     ID3D11InputLayout* InputLayout = nullptr;
     
     ID3D11VertexShader* VertexShader = nullptr;
-
-    //ID3D11SamplerState* Sampler = nullptr;
     
     FDXDBufferManager* BufferManager = nullptr;
     FGraphicsDevice* Graphics = nullptr;

@@ -94,7 +94,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
             LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
 
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
             FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(60), 1, 0.001, D3D11_FLOAT32_MAX);
             
@@ -112,7 +112,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.PointLights[PointLightsCount] = Light->GetPointLightInfo();
             LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
 
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값
             FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(90), 1, 0.001, D3D11_FLOAT32_MAX);
             
@@ -130,7 +130,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.Directional[DirectionalLightsCount] = Light->GetDirectionalLightInfo();
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
 
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO 임시값
             FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100000, 100000, 0.0001f, D3D11_FLOAT32_MAX);
             

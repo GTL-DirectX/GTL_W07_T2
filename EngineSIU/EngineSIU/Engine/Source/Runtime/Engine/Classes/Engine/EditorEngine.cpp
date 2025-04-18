@@ -196,8 +196,8 @@ void UEditorEngine::HoverActor(AActor* InActor)
 
 void UEditorEngine::NewWorld()
 {
-    SelectActor(nullptr);
-    SelectComponent(nullptr);
+    DeselectActor(GetSelectedActor());
+    DeselectComponent(GetSelectedComponent());
 
     if (ActiveWorld->GetActiveLevel())
     {

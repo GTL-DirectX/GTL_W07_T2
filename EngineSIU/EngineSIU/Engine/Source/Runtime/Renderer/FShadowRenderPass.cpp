@@ -16,13 +16,11 @@
 #include "D3D11RHI/DXDShaderManager.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "Components/Light/DirectionalLightComponent.h"
 #include "Types/ShadowTypes.h"
 
 FShadowRenderPass::FShadowRenderPass()
     : InputLayout(nullptr)
     , VertexShader(nullptr)
-    //, Sampler(nullptr)
     , BufferManager(nullptr)
     , Graphics(nullptr)
     , ShaderManager(nullptr)
@@ -62,27 +60,6 @@ void FShadowRenderPass::ReleaseShader()
     
 }
 
-void FShadowRenderPass::CreateSampler()
-{
-    // D3D11_SAMPLER_DESC SamplerDesc;
-    // ZeroMemory(&SamplerDesc, sizeof(D3D11_SAMPLER_DESC));
-    // SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-    // SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-    // SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    // SamplerDesc.BorderColor[0] = 1.0f;
-    // SamplerDesc.BorderColor[1] = 1.0f;
-    // SamplerDesc.BorderColor[2] = 1.0f;
-    // SamplerDesc.BorderColor[3] = 1.0f;
-    // SamplerDesc.MinLOD = 0.f;
-    // SamplerDesc.MaxLOD = 0.f;
-    // SamplerDesc.MipLODBias = 0.f;
-    // SamplerDesc.MaxAnisotropy = 0;
-    // SamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-    // SamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-    //
-    // Graphics->Device->CreateSamplerState(&SamplerDesc, &Sampler);
-}
-
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     BufferManager = InBufferManager;
@@ -99,10 +76,6 @@ void FShadowRenderPass::PrepareRender()
         if (!Cast<UGizmoBaseComponent>(iter) && iter->GetWorld() == GEngine->ActiveWorld)
         {
             StaticMeshComponents.Add(iter);
-        }
-        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
-        {
-            DirectionalLights.Add(DirectionalLight);
         }
     }
 }
@@ -142,7 +115,6 @@ void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix) const
 {
     FObjectConstantBuffer ObjectData = {};
     ObjectData.WorldMatrix = WorldMatrix;
-    ObjectData.InverseTransposedWorld = FMatrix::Transpose(FMatrix::Inverse(WorldMatrix));
     
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
 }
@@ -159,28 +131,23 @@ void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData) 
         Graphics->DeviceContext->IASetIndexBuffer(RenderData->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
     }
 
-    HRESULT hr;
     if (RenderData->MaterialSubsets.Num() == 0)
     {
-        hr = Graphics->Device->GetDeviceRemovedReason();
         Graphics->DeviceContext->DrawIndexed(RenderData->Indices.Num(), 0, 0);
-        hr = Graphics->Device->GetDeviceRemovedReason();
         return;
     }
 
     for (int SubMeshIndex = 0; SubMeshIndex < RenderData->MaterialSubsets.Num(); SubMeshIndex++)
     {
-        hr = Graphics->Device->GetDeviceRemovedReason();
         uint32 StartIndex = RenderData->MaterialSubsets[SubMeshIndex].IndexStart;
         uint32 IndexCount = RenderData->MaterialSubsets[SubMeshIndex].IndexCount;
         Graphics->DeviceContext->DrawIndexed(IndexCount, StartIndex, 0);
-        hr = Graphics->Device->GetDeviceRemovedReason();
     }
 }
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    // TODO Temp임
+    // TODO: Temp - Light만큼 DSV 그리기
     for (int i = 0; i < 1; i++)
     {
         PrepareRenderState(Viewport);
@@ -215,5 +182,4 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 void FShadowRenderPass::ClearRenderArr()
 {
     StaticMeshComponents.Empty();
-    DirectionalLights.Empty();
 }
