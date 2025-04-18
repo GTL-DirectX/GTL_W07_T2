@@ -6,7 +6,7 @@
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
     Intensity = 10.0f;
-
+    LightColor = FColor::White;
 }
 
 FVector UDirectionalLightComponent::GetDirection() const 

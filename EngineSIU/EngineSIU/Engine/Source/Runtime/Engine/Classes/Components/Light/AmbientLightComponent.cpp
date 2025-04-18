@@ -2,6 +2,6 @@
 
 UAmbientLightComponent::UAmbientLightComponent()
 {
-    LightColor = FColor(0.1f, 0.1f, 0.1f, 0.1f);
+    LightColor = FColor(25, 25, 25, 255);
 }
 
