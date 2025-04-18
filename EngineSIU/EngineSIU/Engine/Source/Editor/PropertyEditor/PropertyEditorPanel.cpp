@@ -158,7 +158,7 @@ void PropertyEditorPanel::Render()
             {
                 DrawColorProperty("Light Color",
                     [&]() { return pointlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { pointlightObj->SetLightColor(c); });
+                    [&](FLinearColor c) { pointlightObj->SetLightColor(c.ToColorSRGB()); });
 
                 float Intensity = pointlightObj->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
@@ -185,7 +185,7 @@ void PropertyEditorPanel::Render()
             {
                 DrawColorProperty("Light Color",
                     [&]() { return spotlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { spotlightObj->SetLightColor(c); });
+                    [&](FLinearColor c) { spotlightObj->SetLightColor(c.ToColorSRGB()); });
 
                 float Intensity = spotlightObj->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
@@ -199,14 +199,14 @@ void PropertyEditorPanel::Render()
                 LightDirection = spotlightObj->GetDirection();
                 FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
                 
-                float InnerDegree = spotlightObj->GetInnerDegree();
+                float InnerDegree = spotlightObj->GetInnerAngle();
                 if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetInnerDegree(InnerDegree);
+                    spotlightObj->SetInnerAngle(InnerDegree);
                 }
 
-                float OuterDegree = spotlightObj->GetOuterDegree();
+                float OuterDegree = spotlightObj->GetOuterAngle();
                 if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 180.f, "%.1f")) {
-                    spotlightObj->SetOuterDegree(OuterDegree);
+                    spotlightObj->SetOuterAngle(OuterDegree);
                 }
 
                 ImGui::TreePop();
@@ -224,7 +224,7 @@ void PropertyEditorPanel::Render()
             {
                 DrawColorProperty("Light Color",
                     [&]() { return dirlightObj->GetLightColor(); },
-                    [&](FLinearColor c) { dirlightObj->SetLightColor(c); });
+                    [&](FLinearColor c) { dirlightObj->SetLightColor(c.ToColorSRGB()); });
 
                 float Intensity = dirlightObj->GetIntensity();
                 if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 150.0f, "%.1f"))
@@ -248,7 +248,7 @@ void PropertyEditorPanel::Render()
             {
                 DrawColorProperty("Light Color",
                     [&]() { return ambientLightObj->GetLightColor(); },
-                    [&](FLinearColor c) { ambientLightObj->SetLightColor(c); });
+                    [&](FLinearColor c) { ambientLightObj->SetLightColor(c.ToColorSRGB()); });
                 ImGui::TreePop();
             }
 

@@ -7,19 +7,8 @@ class UDirectionalLightComponent : public ULightComponent
 
 public:
     UDirectionalLightComponent();
-    virtual ~UDirectionalLightComponent() override;
-    FVector GetDirection();
 
-    const FDirectionalLightInfo& GetDirectionalLightInfo() const;
-    void SetDirectionalLightInfo(const FDirectionalLightInfo& InDirectionalLightInfo);
+    FVector GetDirection() const;
 
-    float GetIntensity() const;
-    void SetIntensity(float InIntensity);
-
-    FLinearColor GetLightColor() const;
-    void SetLightColor(const FLinearColor& InColor);
-
-private:
-    FDirectionalLightInfo DirectionalLightInfo;
 };
 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "ActorComponent.h"
 #include "Math/Rotator.h"
 #include "UObject/ObjectMacros.h"
@@ -21,9 +22,9 @@ public:
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
     virtual void DestroyComponent() override;
 
-    virtual FVector GetForwardVector();
-    virtual FVector GetRightVector();
-    virtual FVector GetUpVector();
+    virtual FVector GetForwardVector() const;
+    virtual FVector GetRightVector() const;
+    virtual FVector GetUpVector() const;
     
     void AddLocation(FVector InAddValue);
     void AddRotation(FVector InAddValue);
