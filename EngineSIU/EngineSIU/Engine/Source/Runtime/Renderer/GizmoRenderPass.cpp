@@ -155,8 +155,6 @@ void FGizmoRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
             RenderGizmoComponent(GizmoComp, Viewport);
         }
     }
-    
-    Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };

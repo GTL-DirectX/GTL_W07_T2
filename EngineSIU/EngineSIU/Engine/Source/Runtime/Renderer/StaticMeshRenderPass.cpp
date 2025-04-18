@@ -105,6 +105,26 @@ void FStaticMeshRenderPass::ReleaseShader()
     
 }
 
+void FStaticMeshRenderPass::CreateSampler()
+{
+    D3D11_SAMPLER_DESC comparisonSamplerDesc;
+    ZeroMemory(&comparisonSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+    comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    comparisonSamplerDesc.BorderColor[0] = 1.0f;
+    comparisonSamplerDesc.BorderColor[1] = 1.0f;
+    comparisonSamplerDesc.BorderColor[2] = 1.0f;
+    comparisonSamplerDesc.BorderColor[3] = 1.0f;
+    comparisonSamplerDesc.MinLOD = 0.f;
+    comparisonSamplerDesc.MaxLOD = 0.f;
+    comparisonSamplerDesc.MipLODBias = 0.f;
+    comparisonSamplerDesc.MaxAnisotropy = 0;
+    comparisonSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    comparisonSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+    HRESULT hr = Graphics->Device->CreateSamplerState(&comparisonSamplerDesc, &ShadowSampler);
+}
+
 void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewModeIndex)
 {
     switch (ViewModeIndex)
@@ -144,6 +164,7 @@ void FStaticMeshRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGrap
     ShaderManager = InShaderManager;
 
     CreateShader();
+    CreateSampler();
 }
 
 void FStaticMeshRenderPass::PrepareRender()
@@ -294,6 +315,10 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     
     PrepareRenderState(Viewport);
 
+    Graphics->DeviceContext->PSSetSamplers(2, 1, &ShadowSampler);
+    // TODO: Temp Shadow 여러개
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, &ViewportResource->GetShadowDepthStencilSRV());
+
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
         if (!Comp || !Comp->GetStaticMesh())
@@ -323,6 +348,9 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
         }
     }
 
+    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, NullSRV);
+    
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

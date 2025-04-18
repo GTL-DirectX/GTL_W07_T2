@@ -166,6 +166,23 @@ void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, ER
     }
 }
 
+// TODO: Temp Function
+void FViewportResource::ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EDepthType Type)
+{
+    if (Type == EDepthType::EDT_Depth)
+    {
+        DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    }
+    else if (Type == EDepthType::EDT_GizmosDepth)
+    {
+        DeviceContext->ClearDepthStencilView(GizmoDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    }
+    else if (Type == EDepthType::EDT_ShadowDepth)
+    {
+        DeviceContext->ClearDepthStencilView(ShadowDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    }    
+}
+
 std::array<float, 4> FViewportResource::GetClearColor(EResourceType Type) const
 {
     if (const std::array<float, 4>* Found = ClearColors.Find(Type))
@@ -201,6 +218,24 @@ HRESULT FViewportResource::CreateDepthStencilResources()
     {
         return hr;
     }
+
+    D3D11_TEXTURE2D_DESC ShadowMapDesc;
+    ZeroMemory(&ShadowMapDesc, sizeof(D3D11_TEXTURE2D_DESC));
+    ShadowMapDesc.Height = static_cast<uint32>(D3DViewport.Width);
+    ShadowMapDesc.Width = static_cast<uint32>(D3DViewport.Height);
+    ShadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+    ShadowMapDesc.MipLevels = 0;
+    ShadowMapDesc.ArraySize = 1;
+    ShadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
+    ShadowMapDesc.CPUAccessFlags = 0;
+    ShadowMapDesc.SampleDesc.Count = 1;
+    ShadowMapDesc.SampleDesc.Quality = 0;
+    ShadowMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&ShadowMapDesc, nullptr, &ShadowDepthStencilTexture);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
     
     D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
     DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -217,6 +252,18 @@ HRESULT FViewportResource::CreateDepthStencilResources()
         return hr;
     }
 
+    D3D11_DEPTH_STENCIL_VIEW_DESC ShadowDepthStencilViewDesc;
+    ZeroMemory(&ShadowDepthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+    ShadowDepthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    ShadowDepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    ShadowDepthStencilViewDesc.Texture2D.MipSlice = 0;
+    
+    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(ShadowDepthStencilTexture,  &ShadowDepthStencilViewDesc,  &ShadowDepthStencilView);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
     D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilDesc = {};
     DepthStencilDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     DepthStencilDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -227,7 +274,17 @@ HRESULT FViewportResource::CreateDepthStencilResources()
     {
         return hr;
     }
-
+    D3D11_SHADER_RESOURCE_VIEW_DESC ShadowSRVDesc;
+    ZeroMemory(&ShadowSRVDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+    ShadowSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    ShadowSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    ShadowSRVDesc.Texture2D.MipLevels = 1;
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(ShadowDepthStencilTexture, &ShadowSRVDesc, &ShadowDepthStencilSRV);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
     return hr;
 }
 
@@ -247,6 +304,22 @@ void FViewportResource::ReleaseDepthStencilResources()
     {
         DepthStencilTexture->Release();
         DepthStencilTexture = nullptr;
+    }
+
+    if (ShadowDepthStencilView)
+    {
+        ShadowDepthStencilView->Release();
+        ShadowDepthStencilView = nullptr;
+    }
+    if (ShadowDepthStencilSRV)
+    {
+        ShadowDepthStencilSRV->Release();
+        ShadowDepthStencilSRV = nullptr;
+    }
+    if (ShadowDepthStencilTexture)
+    {
+        ShadowDepthStencilTexture->Release();
+        ShadowDepthStencilTexture = nullptr;
     }
 }
 

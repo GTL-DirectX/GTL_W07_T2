@@ -26,6 +26,14 @@ enum class EResourceType : uint8
     ERT_MAX,
 };
 
+enum class EDepthType : uint8
+{
+    EDT_Depth,
+    EDT_GizmosDepth,
+    EDT_ShadowDepth,
+    EVL_MAX,
+};
+
 struct FRenderTargetRHI
 {
     ID3D11Texture2D* Texture2D = nullptr;
@@ -71,6 +79,10 @@ public:
     ID3D11DepthStencilView*& GetDepthStencilView() { return DepthStencilView; }
     ID3D11ShaderResourceView*& GetDepthStencilSRV() { return DepthStencilSRV; }
 
+    ID3D11Texture2D*& GetShadowDepthStencilTexture() { return ShadowDepthStencilTexture; }
+    ID3D11DepthStencilView*& GetShadowDepthStencilView() { return ShadowDepthStencilView; }
+    ID3D11ShaderResourceView*& GetShadowDepthStencilSRV() { return ShadowDepthStencilSRV; }
+    
     ID3D11Texture2D*& GetGizmoDepthStencilTexture() { return GizmoDepthStencilTexture; }
     ID3D11DepthStencilView*& GetGizmoDepthStencilView() { return GizmoDepthStencilView; }
 
@@ -87,6 +99,9 @@ public:
     // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
     void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
 
+    // 지정한 타입의 Depth Stencil 뷰를 clear. 없는 경우 생성해서 clear.
+    void ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EDepthType Type);
+    
     std::array<float, 4> GetClearColor(EResourceType Type) const;
     
 private:
@@ -97,6 +112,10 @@ private:
     ID3D11DepthStencilView* DepthStencilView = nullptr;
     ID3D11ShaderResourceView* DepthStencilSRV = nullptr;
 
+    ID3D11Texture2D* ShadowDepthStencilTexture = nullptr;
+    ID3D11DepthStencilView* ShadowDepthStencilView = nullptr;
+    ID3D11ShaderResourceView* ShadowDepthStencilSRV = nullptr;
+    
     ID3D11Texture2D* GizmoDepthStencilTexture = nullptr;
     ID3D11DepthStencilView* GizmoDepthStencilView = nullptr;
 

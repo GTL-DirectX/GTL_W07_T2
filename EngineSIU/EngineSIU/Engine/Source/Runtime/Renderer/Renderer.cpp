@@ -20,12 +20,14 @@
 #include <UObject/Casts.h>
 
 #include "CompositingPass.h"
+#include "FShadowRenderPass.h"
 #include "PostProcessCompositingPass.h"
 #include "SlateRenderPass.h"
 #include "UnrealClient.h"
 #include "GameFrameWork/Actor.h"
 
 #include "PropertyEditor/ShowFlags.h"
+#include "Types/ShadowTypes.h"
 
 //------------------------------------------------------------------------------
 // 초기화 및 해제 관련 함수
@@ -39,7 +41,8 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
 
     CreateConstantBuffers();
     CreateCommonShader();
-    
+
+    ShadowRenderPass = new FShadowRenderPass();
     StaticMeshRenderPass = new FStaticMeshRenderPass();
     WorldBillboardRenderPass = new FWorldBillboardRenderPass();
     EditorBillboardRenderPass = new FEditorBillboardRenderPass();
@@ -52,6 +55,7 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     PostProcessCompositingPass = new FPostProcessCompositingPass();
     SlateRenderPass = new FSlateRenderPass();
 
+    ShadowRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     StaticMeshRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     WorldBillboardRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
     EditorBillboardRenderPass->Initialize(BufferManager, Graphics, ShaderManager);
@@ -71,6 +75,7 @@ void FRenderer::Release()
 {
     delete ShaderManager;
 
+    delete ShadowRenderPass;
     delete StaticMeshRenderPass;
     delete WorldBillboardRenderPass;
     delete EditorBillboardRenderPass;
@@ -121,7 +126,10 @@ void FRenderer::CreateConstantBuffers()
     UINT LightInfoBufferSize = sizeof(FLightInfoBuffer);
     BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-
+    UINT ShadowLightConstantBufferSize = sizeof(FShadowLightConstants);
+    BufferManager->CreateBufferGeneric<FShadowLightConstants>("FShadowLightConstants", nullptr, ShadowLightConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    
+    
     // TODO: 함수로 분리
     ID3D11Buffer* ObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));
@@ -179,6 +187,7 @@ void FRenderer::PrepareRender(FViewportResource* ViewportResource)
 
 void FRenderer::PrepareRenderPass()
 {
+    ShadowRenderPass->PrepareRender();
     StaticMeshRenderPass->PrepareRender();
     GizmoRenderPass->PrepareRender();
     WorldBillboardRenderPass->PrepareRender();
@@ -190,6 +199,7 @@ void FRenderer::PrepareRenderPass()
 
 void FRenderer::ClearRenderArr()
 {
+    ShadowRenderPass->ClearRenderArr();
     StaticMeshRenderPass->ClearRenderArr();
     WorldBillboardRenderPass->ClearRenderArr();
     EditorBillboardRenderPass->ClearRenderArr();
@@ -261,11 +271,12 @@ void FRenderer::EndRender()
 
 void FRenderer::RenderWorldScene(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    const uint64 ShowFlag = Viewport->GetShowFlag();
+    const uint64 ShowFlag = Viewport->GetShowFlag();    
     
     if (ShowFlag & EEngineShowFlags::SF_Primitives)
     {
         UpdateLightBufferPass->Render(Viewport);
+        ShadowRenderPass->Render(Viewport);
         StaticMeshRenderPass->Render(Viewport);
     }
     
