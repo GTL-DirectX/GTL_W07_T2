@@ -138,6 +138,13 @@ bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, co
 {
     FSceneData SceneData = WorldToSceneData(InWorld);
 
+
+    std::filesystem::path Dir = std::filesystem::path(FilePath).parent_path();
+    
+    if (!std::filesystem::exists(Dir)) {
+        std::filesystem::create_directories(Dir); // 중간 경로까지 모두 생성
+    }
+    
     std::ofstream outFile(FilePath);
     if (!outFile)
     {
@@ -388,10 +395,10 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
         for (const FComponentSaveData& componentData : actorData.Components) // 다시 컴포넌트 데이터 순회
         {
             UActorComponent** FoundCompPtr = ActorComponentsMap.Find(componentData.ComponentID);
-            if (componentData.ComponentID == "USpotLightComponent_156")
-            {
-                int a= 0;
-            }
+            // if (componentData.ComponentID == "USpotLightComponent_156")
+            // {
+            //     int a= 0;
+            // }
             
             if (FoundCompPtr == nullptr || *FoundCompPtr == nullptr) continue; // 위에서 생성/찾기 실패한 경우
 

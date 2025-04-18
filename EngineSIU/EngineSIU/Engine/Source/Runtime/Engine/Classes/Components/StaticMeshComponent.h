@@ -34,7 +34,7 @@ public:
         if (staticMesh == nullptr)
         {
             OverrideMaterials.SetNum(0);
-            AABB = FBoundingBox(0, 0);
+            AABB = FBoundingBox(FVector::ZeroVector, FVector::ZeroVector);
         }
         else
         {

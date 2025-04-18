@@ -222,7 +222,7 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
         UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
         AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
         Engine->SelectActor(NewActor);
-        Engine->DeselectComponent(Engine->GetSelectedComponent());
+        Engine->DeSelectComponent(Engine->GetSelectedComponent());
     }
     
     if (ImGui::TreeNodeEx("Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성

@@ -4,8 +4,8 @@
 
 APointLight::APointLight()
 {
-    PointLightComponent = AddComponent<UPointLightComponent>();
-    BillboardComponent = AddComponent<UBillboardComponent>();
+    PointLightComponent = AddComponent<UPointLightComponent>("UPointLightComponent_0");
+    BillboardComponent = AddComponent<UBillboardComponent>("UBillboardComponent_0");
 
     RootComponent = BillboardComponent;
 
