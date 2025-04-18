@@ -292,7 +292,6 @@
     <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
     <ClCompile Include="LightGridGenerator.cpp" />
-    <None Include="Shaders\Shadow.hlsl" />
     <None Include="Shaders\CompositingShader.hlsl" />
     <None Include="Shaders\DepthBufferPixelShader.hlsl" />
     <None Include="Shaders\DepthBufferVertexShader.hlsl" />
