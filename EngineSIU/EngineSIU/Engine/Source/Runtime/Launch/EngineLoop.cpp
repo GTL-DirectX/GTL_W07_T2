@@ -60,7 +60,7 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
 
     GEngine = FObjectFactory::ConstructObject<UEditorEngine>(nullptr);
     GEngine->Init();
-
+    
     UpdateUI();
 
     return 0;
@@ -163,6 +163,8 @@ void FEngineLoop::Exit()
     ResourceManager.Release(&Renderer);
     Renderer.Release();
     GraphicDevice.Release();
+
+    GEngine->Release();
 
     delete UnrealEditor;
     delete BufferManager;
