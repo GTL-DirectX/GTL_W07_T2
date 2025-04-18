@@ -215,7 +215,7 @@ void UEditorEngine::SelectComponent(USceneComponent* InComponent) const
 
 void UEditorEngine::DeselectComponent(USceneComponent* InComponent)
 {
-    if (InComponent == nullptr)
+    if (InComponent)
     {
         PrivateEditorSelection::GComponentSelected = nullptr;
     }
