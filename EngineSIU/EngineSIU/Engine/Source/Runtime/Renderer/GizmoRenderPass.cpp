@@ -185,7 +185,7 @@ void FGizmoRenderPass::RenderGizmoComponent(UGizmoBaseComponent* GizmoComp, cons
     USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
     AActor* SelectedActor = Engine->GetSelectedActor();
     
-    if (SelectedComponent != nullptr && SelectedActor != nullptr)
+    if (SelectedComponent == nullptr && SelectedActor == nullptr)
     {
         return;
     }
