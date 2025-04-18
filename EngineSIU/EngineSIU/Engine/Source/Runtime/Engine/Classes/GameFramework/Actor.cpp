@@ -62,6 +62,24 @@ UObject* AActor::Duplicate(UObject* InOuter)
     return NewActor;
 }
 
+void AActor::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    TMap<FString, FString>& Properties = OutProperties;
+
+    Properties.Add(TEXT("bTickInEditor"), bTickInEditor ? TEXT("true") : TEXT("false"));
+}
+
+void AActor::SetProperties(const TMap<FString, FString>& Properties)
+{
+    const FString* TempStr = nullptr;
+    
+    TempStr = Properties.Find(TEXT("bTickInEditor"));
+    if (TempStr)
+    {
+        bTickInEditor = *TempStr == TEXT("true");
+    }
+}
+
 void AActor::BeginPlay()
 {
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
