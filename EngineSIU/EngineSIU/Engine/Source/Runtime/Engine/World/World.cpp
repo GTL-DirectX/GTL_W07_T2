@@ -1,14 +1,9 @@
 #include "World.h"
 
-#include "Actors/Cube.h"
 #include "Actors/Player.h"
-#include "BaseGizmos/TransformGizmo.h"
 #include "Camera/CameraComponent.h"
-#include "Classes/Components/StaticMeshComponent.h"
-#include "Components/SkySphereComponent.h"
-#include "Engine/FLoaderOBJ.h"
-#include "Actors/HeightFogActor.h"
 #include "Engine/EditorEngine.h"
+#include "Engine/FLoaderOBJ.h"
 #include "Engine/Engine.h"
 #include "UnrealEd/SceneManager.h"
 
@@ -113,10 +108,10 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     {
         return true;
     }
-    
-    // UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-    //
-    // Engine->DeselectActor(ThisActor);
+
+    // 안전을 위한 DeSelect (해당 함수를 사용하는 곳에서도 DeSelect하고 있음.)
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    Engine->DeSelectActor(ThisActor);
 
     // 액터의 Destroyed 호출
     ThisActor->Destroyed();
@@ -124,12 +119,6 @@ bool UWorld::DestroyActor(AActor* ThisActor)
     if (ThisActor->GetOwner())
     {
         ThisActor->SetOwner(nullptr);
-    }
-
-    TSet<UActorComponent*> Components = ThisActor->GetComponents();
-    for (UActorComponent* Component : Components)
-    {
-        Component->DestroyComponent();
     }
 
     // World에서 제거

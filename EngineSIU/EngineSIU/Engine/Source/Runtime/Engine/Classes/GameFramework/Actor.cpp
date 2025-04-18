@@ -10,9 +10,9 @@ UObject* AActor::Duplicate(UObject* InOuter)
     NewActor->bTickInEditor = bTickInEditor;
     // 기본적으로 있던 컴포넌트 제거
     TSet CopiedComponents = NewActor->OwnedComponents;
-    for (UActorComponent* Components : CopiedComponents)
+    for (UActorComponent* Component : CopiedComponents)
     {
-        Components->DestroyComponent();
+        Component->DestroyComponent(true);
     }
     NewActor->OwnedComponents.Empty();
 
@@ -62,6 +62,24 @@ UObject* AActor::Duplicate(UObject* InOuter)
     return NewActor;
 }
 
+void AActor::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    TMap<FString, FString>& Properties = OutProperties;
+
+    Properties.Add(TEXT("bTickInEditor"), bTickInEditor ? TEXT("true") : TEXT("false"));
+}
+
+void AActor::SetProperties(const TMap<FString, FString>& Properties)
+{
+    const FString* TempStr = nullptr;
+    
+    TempStr = Properties.Find(TEXT("bTickInEditor"));
+    if (TempStr)
+    {
+        bTickInEditor = *TempStr == TEXT("true");
+    }
+}
+
 void AActor::BeginPlay()
 {
     // TODO: 나중에 삭제를 Pending으로 하던가 해서 복사비용 줄이기
@@ -88,6 +106,12 @@ void AActor::Destroyed()
 {
     // Actor가 제거되었을 때 호출하는 EndPlay
     EndPlay(EEndPlayReason::Destroyed);
+
+    TSet<UActorComponent*> Components = OwnedComponents;
+    for (UActorComponent* Component : Components)
+    {
+        Component->DestroyComponent(true);
+    }
 }
 
 void AActor::EndPlay(const EEndPlayReason::Type EndPlayReason)

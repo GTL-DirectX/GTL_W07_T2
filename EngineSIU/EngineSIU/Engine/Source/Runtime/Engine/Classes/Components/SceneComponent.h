@@ -20,7 +20,7 @@ public:
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
-    virtual void DestroyComponent() override;
+    virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
     virtual FVector GetForwardVector() const;
     virtual FVector GetRightVector() const;
@@ -34,6 +34,8 @@ public:
     const TArray<USceneComponent*>& GetAttachChildren() const { return AttachChildren; }
 
     void AttachToComponent(USceneComponent* InParent);
+    void SetupAttachment(USceneComponent* InParent);
+    void DetachFromComponent(USceneComponent* Target);
 
 public:
     void SetRelativeLocation(FVector InNewLocation) { RelativeLocation = InNewLocation; }
@@ -53,8 +55,6 @@ public:
     FMatrix GetTranslationMatrix() const;
 
     FMatrix GetWorldMatrix() const;
-    
-    void SetupAttachment(USceneComponent* InParent);
 
 protected:
     /** 부모 컴포넌트로부터 상대적인 위치 */

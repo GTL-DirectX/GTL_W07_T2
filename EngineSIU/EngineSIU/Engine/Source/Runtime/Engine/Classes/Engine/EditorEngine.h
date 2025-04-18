@@ -20,6 +20,7 @@ public:
 
     virtual void Init() override;
     virtual void Tick(float DeltaTime) override;
+    void Release() override;
 
     UWorld* PIEWorld = nullptr;
     UWorld* EditorWorld = nullptr;
@@ -33,7 +34,7 @@ public:
 
 public:
     void SelectActor(AActor* InActor);
-    void DeselectActor(AActor* InActor);
+    void DeSelectActor(AActor* InActor);
     bool CanSelectActor(const AActor* InActor) const;
     AActor* GetSelectedActor() const;
 
@@ -43,7 +44,7 @@ public:
     void NewWorld();
 
     void SelectComponent(USceneComponent* InComponent) const;
-    void DeselectComponent(USceneComponent* InComponent);
+    void DeSelectComponent(USceneComponent* InComponent);
     bool CanSelectComponent(const USceneComponent* InComponent) const;
     USceneComponent* GetSelectedComponent() const;
 

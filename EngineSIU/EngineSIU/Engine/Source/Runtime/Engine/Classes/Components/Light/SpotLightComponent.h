@@ -4,10 +4,13 @@
 
 class USpotLightComponent :public ULightComponent
 {
-
     DECLARE_CLASS(USpotLightComponent, ULightComponent)
 public:
     USpotLightComponent();
+    virtual UObject* Duplicate(UObject* InOuter) override;
+
+    void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    void SetProperties(const TMap<FString, FString>& InProperties) override;
 
     // Getters and Setters
     FVector GetDirection() const;
