@@ -341,13 +341,33 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
         // shadowmap view
-        auto srv = GEngineLoop.GetLevelEditor()
+        ID3D11ShaderResourceView* originalSRV = GEngineLoop.GetLevelEditor()
             ->GetActiveViewportClient()
             ->GetViewportResource()
-            ->GetDepthStencil(EDepthType::EDT_ShadowDepth)
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
             ->SRV;
 
-        ImTextureID texId = (ImTextureID)srv;
+        ID3D11Resource* originalResource = nullptr;
+        originalSRV->GetResource(&originalResource);
+
+        ID3D11Texture2D* originalTexture = nullptr;
+        originalResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&originalTexture);
+
+        D3D11_TEXTURE2D_DESC desc = {};
+        originalTexture->GetDesc(&desc);
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        desc.Usage = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+
+        ID3D11Texture2D* copiedTexture = nullptr;
+        GEngineLoop.GraphicDevice.Device->CreateTexture2D(&desc, nullptr, &copiedTexture);
+        GEngineLoop.GraphicDevice.DeviceContext->CopyResource(copiedTexture, originalTexture);
+
+        ID3D11ShaderResourceView* copiedSRV = nullptr;
+        GEngineLoop.GraphicDevice.Device->CreateShaderResourceView(copiedTexture, nullptr, &copiedSRV);
+
+        ImTextureID texId = (ImTextureID)copiedSRV;
         ImGui::Image(texId, ImVec2(256, 256));
         ImGui::TreePop();
     }

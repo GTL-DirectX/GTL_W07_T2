@@ -11,6 +11,7 @@ FViewportResource::FViewportResource()
     ClearColors.Add(EResourceType::ERT_Editor, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_Overlay, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PostProcessCompositing, { 0.f, 0.f, 0.f, 0.f });
+    ClearColors.Add(EResourceType::ERT_ShadowMapVisualization, { 0.f, 0.f, 0.f, 0.f });
 }
 
 FViewportResource::~FViewportResource()
@@ -131,6 +132,7 @@ HRESULT FViewportResource::CreateResource(EResourceType Type)
 
 HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
 {
+    // TODO : 나중에 Static Light, Caster, Receiver에 따라 Depth Map 캐싱데이터 재사용 하기
     if (HasDepthStencil(Type))
     {
         ReleaseDepthStencilResource(Type);
@@ -144,8 +146,8 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
     {
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
-        TextureDesc.Height = static_cast<uint32>(D3DViewport.Width);
-        TextureDesc.Width = static_cast<uint32>(D3DViewport.Height);
+        TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
+        TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
         TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
         TextureDesc.MipLevels = 0;
         TextureDesc.ArraySize = 1;

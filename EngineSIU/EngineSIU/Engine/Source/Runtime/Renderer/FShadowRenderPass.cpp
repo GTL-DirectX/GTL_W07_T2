@@ -51,7 +51,15 @@ void FShadowRenderPass::CreateShader()
         return;
     }    
 
+    hr = ShaderManager->AddPixelShader(L"ShadowShader", L"Shaders/ShadowMapVisualizationPixelShader.hlsl", "mainPS");
+    if (FAILED(hr))
+    {
+        // MessageBox(hwnd, L"failed!", L"Error", MB_ICONERROR | MB_OK);
+        return;
+    }
+
     VertexShader = ShaderManager->GetVertexShaderByKey(L"ShadowVertexShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"ShadowShader");
     InputLayout = ShaderManager->GetInputLayoutByKey(L"ShadowVertexShader");
 }
 
@@ -82,31 +90,34 @@ void FShadowRenderPass::PrepareRender()
 
 void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport) 
 {
-    constexpr EDepthType ResourceType = EDepthType::EDT_ShadowDepth;
+    constexpr EResourceType ResourceType = EResourceType::ERT_ShadowMapVisualization;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    //FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
     // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
-    ViewportResource->ClearDepthStencil(Graphics->DeviceContext, ResourceType);    
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV);
+    ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
     
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
 
     BufferManager->BindConstantBuffer("FLightInfoBuffer", 0, EShaderStage::Vertex);
 
     // TODO Slot 임시
     BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Pixel);
 }
 
 void FShadowRenderPass::UpdateLightIndex(uint32 index) const
 {
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
+    ObjectData.NearPlane = 0.001f;
+    ObjectData.FarPlane = 30.0f;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }

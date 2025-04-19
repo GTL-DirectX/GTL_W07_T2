@@ -125,7 +125,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
             FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
-            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(60), 1, 0.001, D3D11_FLOAT32_MAX);
+            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(Light->GetOuterAngle(), 1, 0.001, Light->GetRadius());
             
             LightBufferData.SpotLights[SpotLightsCount].View = ViewMatrix;
             LightBufferData.SpotLights[SpotLightsCount].Projection = ProjectionMatrix;

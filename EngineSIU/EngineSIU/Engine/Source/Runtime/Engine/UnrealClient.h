@@ -23,6 +23,7 @@ enum class EResourceType : uint8
     ERT_Editor,
     ERT_Overlay,
     ERT_PostProcessCompositing,
+    ERT_ShadowMapVisualization,
     ERT_MAX,
 };
 

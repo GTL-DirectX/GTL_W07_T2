@@ -9,6 +9,7 @@ enum class EShaderSRVSlot : int8
     SRV_EditorOverlay = 102,
     SRV_Fog = 103,
     SRV_Shadow = 104,   // TODO: Temp Shadow 여러개
+    SRV_ShadowMapVisualization = 105,
     
     SRV_Viewport = 120,
 

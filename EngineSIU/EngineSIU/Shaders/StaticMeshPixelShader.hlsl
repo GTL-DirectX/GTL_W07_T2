@@ -66,8 +66,8 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
     float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
     
     float2 ShadowMapTexCoord = {
-        0.5f + LightClipSpacePos.x / LightClipSpacePos.w / 2.f,
-        0.5f - LightClipSpacePos.y / LightClipSpacePos.w / 2.f
+        0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+        0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
     };
     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
     LightDistance -= bias;
@@ -99,6 +99,16 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
     }
     
+    if (ShadowMapLight == 1)
+    {
+        // Light
+    }
+    else
+    {
+        // Shadow
+        // Only Ambient
+    }
+    
     // Lighting
     if (IsLit)
     {
@@ -119,7 +129,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
 
-    FinalColor *= ShadowMapLight;
+    //FinalColor *= ShadowMapLight
     
     return FinalColor;
 }

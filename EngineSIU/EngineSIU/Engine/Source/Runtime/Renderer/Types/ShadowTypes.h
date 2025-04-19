@@ -5,5 +5,7 @@
 struct FShadowLightConstants
 {
     uint32 LightIndex;
-    FVector padding;
+    float NearPlane;
+    float FarPlane;
+    float Padding;
 };

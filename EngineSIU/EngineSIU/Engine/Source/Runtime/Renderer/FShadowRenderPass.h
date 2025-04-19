@@ -38,12 +38,17 @@ public:
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;
+    // TODO : 기존의 StaticMeshComponents를 ShadowCaster, ShadowReceiver로 분리
+    TArray<UStaticMeshComponent*> ShadowCasters; // 그림자 캐스팅하는 StaticMesh
+    TArray<UStaticMeshComponent*> ShadowReceivers; // 그림자 받는 StaticMesh
+
     TArray<UDirectionalLightComponent*> DirectionalLights;
     
     ID3D11InputLayout* InputLayout = nullptr;
     
     ID3D11VertexShader* VertexShader = nullptr;
-    
+    ID3D11PixelShader* PixelShader = nullptr;
+
     FDXDBufferManager* BufferManager = nullptr;
     FGraphicsDevice* Graphics = nullptr;
     FDXDShaderManager* ShaderManager = nullptr;
