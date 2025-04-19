@@ -88,7 +88,7 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
 
     // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
     ViewportResource->ClearDepthStencil(Graphics->DeviceContext, ResourceType);    
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, ViewportResource->GetShadowDepthStencilView());
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
