@@ -18,3 +18,13 @@ APointLight::APointLight()
 APointLight::~APointLight()
 {
 }
+
+UObject* APointLight::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewActor->PointLightComponent = NewActor->GetComponentByFName<UPointLightComponent>(PointLightComponent->GetFName());
+    NewActor->BillboardComponent = NewActor->GetComponentByFName<UBillboardComponent>(BillboardComponent->GetFName());
+
+    return NewActor;
+}

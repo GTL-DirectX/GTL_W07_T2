@@ -7,6 +7,7 @@ UObject* UActorComponent::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
+    NewComponent->SetFName(GetName());
     NewComponent->OwnerPrivate = OwnerPrivate;
     NewComponent->bIsActive = bIsActive;
     NewComponent->bAutoActive = bAutoActive;
