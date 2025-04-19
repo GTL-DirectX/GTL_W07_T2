@@ -10,24 +10,26 @@ public:
     UPointLightComponent();
     virtual ~UPointLightComponent() override;
 
-    const FPointLightInfo& GetPointLightInfo() const;
-    void SetPointLightInfo(const FPointLightInfo& InPointLightInfo);
+    virtual UObject* Duplicate(UObject* InOuter) override;
 
-    float GetRadius() const;
-    void SetRadius(float InRadius);
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
 
-    FLinearColor GetLightColor() const;
-    void SetLightColor(const FLinearColor& InColor);
-
-
-    float GetIntensity() const;
-    void SetIntensity(float InIntensity);
-
-    int GetType() const;
-    void SetType(int InType);
+    // Getters and Setters
+    virtual ELightComponentType GetLightType() const override;
+    
+    float GetRadius() const { return Radius; }
+    void SetRadius(float InRadius) { Radius = InRadius; }
+    float GetFallOffExponent() const { return FallOffExponent; }
+    void SetFallOffExponent(float InFallOffExponent) { FallOffExponent = InFallOffExponent; }
+    float GetAttenuation() const { return Attenuation; }
+    void SetAttenuation(float InAttenuation) { Attenuation = InAttenuation; }
+    // End of Getters and Setters
 
 private:
-    FPointLightInfo PointLightInfo;
-};
+    float Radius;
+    float FallOffExponent;
+    float Attenuation;
 
+};
 

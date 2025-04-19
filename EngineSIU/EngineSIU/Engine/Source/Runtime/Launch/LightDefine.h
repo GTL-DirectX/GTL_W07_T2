@@ -1,11 +1,17 @@
 #pragma once
 #include "Math/Vector.h"
-#include "Math/Vector4.h"
-#include "Math/Matrix.h"
+#include "Math/Color.h"
+
 #define MAX_AMBIENT_LIGHT 16
 #define MAX_DIRECTIONAL_LIGHT 16
 #define MAX_POINT_LIGHT 16
 #define MAX_SPOT_LIGHT 16
+
+#define LIGHT_TYPE_DIRECTIONAL		0 
+#define LIGHT_TYPE_POINT			1 
+#define LIGHT_TYPE_SPOT				2 
+#define LIGHT_TYPE_RECT				3 
+#define LIGHT_TYPE_MAX				4 
 
 struct FAmbientLightInfo
 {
@@ -64,6 +70,7 @@ struct FLightInfoBuffer
     FDirectionalLightInfo Directional[MAX_DIRECTIONAL_LIGHT];
     FPointLightInfo PointLights[MAX_POINT_LIGHT];
     FSpotLightInfo SpotLights[MAX_SPOT_LIGHT];
+    
     int DirectionalLightsCount;
     int PointLightsCount;
     int SpotLightsCount;

@@ -40,14 +40,7 @@ void UEditorEngine::Init()
         AssetManager->InitAssetManager();
     }
 
-#ifdef _DEBUG
-    AActor* Actor = EditorWorld->SpawnActor<ACube>();
-    
-    ADirectionalLight* DirLight = EditorWorld->SpawnActor<ADirectionalLight>();
-    DirLight->SetActorRotation(FRotator(20, -61, 11));
-    DirLight->SetActorLocation(FVector(0, 0, 20));
-    DirLight->SetIntensity(2.f);
-#endif
+    LoadWorld("Saved/AutoSaves.scene");
 }
 
 void UEditorEngine::Tick(float DeltaTime)
@@ -97,6 +90,11 @@ void UEditorEngine::Tick(float DeltaTime)
     }
 }
 
+void UEditorEngine::Release()
+{
+    SaveWorld("Saved/AutoSaves.scene");
+}
+
 void UEditorEngine::StartPIE()
 {
     if (PIEWorld)
@@ -129,8 +127,8 @@ void UEditorEngine::EndPIE()
         PIEWorld = nullptr;
 
         // TODO: PIE에서 EditorWorld로 돌아올 때, 기존 선택된 Picking이 유지되어야 함. 현재는 에러를 막기위해 임시조치.
-        SelectActor(nullptr);
-        SelectComponent(nullptr);
+        DeSelectActor(GetSelectedActor());
+        DeSelectComponent(GetSelectedComponent());
     }
     // 다시 EditorWorld로 돌아옴.
     ActiveWorld = EditorWorld;
@@ -168,7 +166,7 @@ void UEditorEngine::SelectActor(AActor* InActor)
     }
 }
 
-void UEditorEngine::DeselectActor(AActor* InActor)
+void UEditorEngine::DeSelectActor(AActor* InActor)
 {
     if (InActor)
     {
@@ -196,8 +194,8 @@ void UEditorEngine::HoverActor(AActor* InActor)
 
 void UEditorEngine::NewWorld()
 {
-    DeselectActor(GetSelectedActor());
-    DeselectComponent(GetSelectedComponent());
+    DeSelectActor(GetSelectedActor());
+    DeSelectComponent(GetSelectedComponent());
 
     if (ActiveWorld->GetActiveLevel())
     {
@@ -213,7 +211,7 @@ void UEditorEngine::SelectComponent(USceneComponent* InComponent) const
     }
 }
 
-void UEditorEngine::DeselectComponent(USceneComponent* InComponent)
+void UEditorEngine::DeSelectComponent(USceneComponent* InComponent)
 {
     if (InComponent)
     {

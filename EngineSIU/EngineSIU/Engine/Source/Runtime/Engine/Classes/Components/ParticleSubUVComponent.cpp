@@ -41,7 +41,6 @@ void UParticleSubUVComponent::GetProperties(TMap<FString, FString>& OutPropertie
     OutProperties.Add(TEXT("FrameDuration"), FString::Printf(TEXT("%f"), FrameDuration));
     OutProperties.Add(TEXT("UVScale"), FString::Printf(TEXT("%s"), *UVScale.ToString()));
     OutProperties.Add(TEXT("UVOffset"), FString::Printf(TEXT("%s"), *UVOffset.ToString()));
-    
 }
 
 void UParticleSubUVComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -150,11 +149,4 @@ void UParticleSubUVComponent::SetRowColumnCount(int cellsPerRow, int cellsPerCol
 {
     CellsPerRow = cellsPerRow;
     CellsPerColumn = cellsPerColumn;
-}
-
-void UParticleSubUVComponent::SetTexture(const FWString& _fileName)
-{
-    Texture = FEngineLoop::ResourceManager.GetTexture(_fileName);
-    std::string str(_fileName.begin(), _fileName.end());
-
 }

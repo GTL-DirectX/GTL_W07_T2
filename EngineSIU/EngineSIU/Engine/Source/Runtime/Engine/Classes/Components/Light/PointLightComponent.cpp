@@ -1,69 +1,72 @@
 #include "PointLightComponent.h"
 
+#include "UObject/Casts.h"
+
 UPointLightComponent::UPointLightComponent()
 {
-    PointLightInfo.Position = GetWorldLocation();
-    PointLightInfo.Radius = 30.f;
-
-    PointLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-    PointLightInfo.Intensity = 1000.f;
-    PointLightInfo.Type = ELightType::POINT_LIGHT;
-    PointLightInfo.Attenuation = 20.0f;
+    Intensity = 1000.f;
+    Radius = 30.0f;
+    FallOffExponent = 2.0f;
+    Attenuation = 20.0f;
 }
 
 UPointLightComponent::~UPointLightComponent()
 {
 }
 
-const FPointLightInfo& UPointLightComponent::GetPointLightInfo() const
+UObject* UPointLightComponent::Duplicate(UObject* InOuter)
 {
-    return PointLightInfo;
+
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
+    if (NewComponent)
+    {
+        NewComponent->Radius = Radius;
+        NewComponent->FallOffExponent = FallOffExponent;
+        NewComponent->Attenuation = Attenuation;
+    }
+    return NewComponent;
 }
 
-void UPointLightComponent::SetPointLightInfo(const FPointLightInfo& InPointLightInfo)
+void UPointLightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 {
-    PointLightInfo = InPointLightInfo;
+    Super::GetProperties(OutProperties);
+    OutProperties.Add(TEXT("Radius"), FString::Printf(TEXT("%f"), Radius));
+    OutProperties.Add(TEXT("Attenuation"), FString::Printf(TEXT("%f"), Attenuation));
+    OutProperties.Add(TEXT("FallOffExponent"), FString::Printf(TEXT("%f"), FallOffExponent));
 }
 
-
-float UPointLightComponent::GetRadius() const
+void UPointLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
 {
-    return PointLightInfo.Radius;
+    Super::SetProperties(InProperties);
+    const FString* TempStr = nullptr;
+    TempStr = InProperties.Find(TEXT("Radius"));
+    if (TempStr)
+    {
+        Radius = FString::ToFloat(*TempStr);
+    }
+    TempStr = InProperties.Find(TEXT("LightColor"));
+    if (TempStr)
+    {
+        LightColor = FLinearColor(*TempStr).ToColorSRGB();
+    }
+    TempStr = InProperties.Find(TEXT("Intensity"));
+    if (TempStr)
+    {
+        Intensity = FString::ToFloat(*TempStr);
+    }
+    TempStr = InProperties.Find(TEXT("Attenuation"));
+    if (TempStr)
+    {
+        Attenuation = FString::ToFloat(*TempStr);
+    }
+    TempStr = InProperties.Find(TEXT("FallOffExponent"));
+    if (TempStr)
+    {
+        FallOffExponent = FString::ToFloat(*TempStr);
+    }
 }
 
-void UPointLightComponent::SetRadius(float InRadius)
+ELightComponentType UPointLightComponent::GetLightType() const
 {
-    PointLightInfo.Radius = InRadius;
-}
-
-FLinearColor UPointLightComponent::GetLightColor() const
-{
-    return PointLightInfo.LightColor;
-}
-
-void UPointLightComponent::SetLightColor(const FLinearColor& InColor)
-{
-    PointLightInfo.LightColor = InColor;
-}
-
-
-float UPointLightComponent::GetIntensity() const
-{
-    return PointLightInfo.Intensity;
-}
-
-void UPointLightComponent::SetIntensity(float InIntensity)
-{
-    PointLightInfo.Intensity = InIntensity;
-}
-
-int UPointLightComponent::GetType() const
-{
-    return PointLightInfo.Type;
-}
-
-void UPointLightComponent::SetType(int InType)
-{
-    PointLightInfo.Type = InType;
+    return LightType_Point;
 }

@@ -3,53 +3,41 @@
 #include "Math/Rotator.h"
 #include "Math/Quat.h"
 
+#include "UObject/Casts.h"
+
 UDirectionalLightComponent::UDirectionalLightComponent()
 {
-
-    DirectionalLightInfo.Direction = -GetUpVector();
-    DirectionalLightInfo.Intensity = 10.0f;
-
-    DirectionalLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    Intensity = 10.0f;
+    LightColor = FColor::White;
 }
 
 UDirectionalLightComponent::~UDirectionalLightComponent()
 {
 }
 
+UObject* UDirectionalLightComponent::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-FVector UDirectionalLightComponent::GetDirection()  
+    if (!NewComponent)
+        return nullptr;
+
+    return NewComponent;
+}
+
+void UDirectionalLightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    Super::GetProperties(OutProperties);
+}
+
+void UDirectionalLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
+{
+    Super::SetProperties(InProperties);
+}
+
+FVector UDirectionalLightComponent::GetDirection() const 
 {
     FRotator rotator = GetWorldRotation();
     FVector WorldDown= rotator.ToQuaternion().RotateVector(-GetUpVector());
     return WorldDown;  
-}
-
-const FDirectionalLightInfo& UDirectionalLightComponent::GetDirectionalLightInfo() const
-{
-    return DirectionalLightInfo;
-}
-
-void UDirectionalLightComponent::SetDirectionalLightInfo(const FDirectionalLightInfo& InDirectionalLightInfo)
-{
-    DirectionalLightInfo = InDirectionalLightInfo;
-}
-
-float UDirectionalLightComponent::GetIntensity() const
-{
-    return DirectionalLightInfo.Intensity;
-}
-
-void UDirectionalLightComponent::SetIntensity(float InIntensity)
-{
-    DirectionalLightInfo.Intensity = InIntensity;
-}
-
-FLinearColor UDirectionalLightComponent::GetLightColor() const
-{
-    return DirectionalLightInfo.LightColor;
-}
-
-void UDirectionalLightComponent::SetLightColor(const FLinearColor& InColor)
-{
-    DirectionalLightInfo.LightColor = InColor;
 }

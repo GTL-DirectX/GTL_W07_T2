@@ -8,14 +8,5 @@ class UAmbientLightComponent : public ULightComponent
 
 public:
     UAmbientLightComponent();
-    virtual ~UAmbientLightComponent() override;
 
-    const FAmbientLightInfo& GetAmbientLightInfo() const;
-    void SetAmbientLightInfo(const FAmbientLightInfo& InAmbient);
-
-    FLinearColor GetLightColor() const;
-    void SetLightColor(const FLinearColor& InColor);
-
-private:
-    FAmbientLightInfo AmbientLightInfo;
 };

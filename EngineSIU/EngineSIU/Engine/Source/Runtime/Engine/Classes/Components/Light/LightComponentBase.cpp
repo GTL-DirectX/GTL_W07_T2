@@ -3,8 +3,10 @@
 
 ULightComponentBase::ULightComponentBase()
 {
-    AABB.max = { 1.f,1.f,0.1f };
-    AABB.min = { -1.f,-1.f,-0.1f };
+    Intensity = 1.0f;
+    LightColor = FColor::White;
+
+    bCastShadows = true;
 }
 
 ULightComponentBase::~ULightComponentBase()
@@ -12,23 +14,43 @@ ULightComponentBase::~ULightComponentBase()
   
 }
 
+void ULightComponentBase::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    USceneComponent::GetProperties(OutProperties);
+
+    OutProperties.Add(TEXT("Intensity"), FString::Printf(TEXT("%f"), GetIntensity()));
+    OutProperties.Add(TEXT("LightColor"), FLinearColor::FromColor(LightColor).ToString());
+}
+
+void ULightComponentBase::SetProperties(const TMap<FString, FString>& InProperties)
+{
+    USceneComponent::SetProperties(InProperties);
+    const FString* TempStr = nullptr;
+
+    TempStr = InProperties.Find(TEXT("Intensity"));
+    if (TempStr)
+    {
+        Intensity = FCString::Atof(**TempStr++);
+    }
+
+    TempStr = InProperties.Find(TEXT("LightColor"));
+    if (TempStr)
+    {
+        LightColor = FLinearColor(*TempStr).ToColorSRGB();
+    }
+    
+}
+
 UObject* ULightComponentBase::Duplicate(UObject* InOuter)
 {
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
-    NewComponent->AABB = AABB;
+    if (!NewComponent)
+        return nullptr;
+    
+    NewComponent->Intensity = Intensity;
+    NewComponent->LightColor = LightColor;
 
     return NewComponent;
-}
-
-void ULightComponentBase::TickComponent(float DeltaTime)
-{
-    Super::TickComponent(DeltaTime);
-}
-
-int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
-{
-    bool res = AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
-    return res;
 }
 
