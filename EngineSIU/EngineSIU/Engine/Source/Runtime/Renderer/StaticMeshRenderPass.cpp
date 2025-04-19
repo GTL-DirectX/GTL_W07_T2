@@ -309,15 +309,15 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
     
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencilView());
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_Depth)->DSV);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, ResourceType);
-    Graphics->DeviceContext->ClearDepthStencilView(ViewportResource->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_Depth);
     
     PrepareRenderState(Viewport);
 
     Graphics->DeviceContext->PSSetSamplers(2, 1, &ShadowSampler);
     // TODO: Temp Shadow 여러개
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, &ViewportResource->GetShadowDepthStencilSRV());
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, &ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->SRV);
 
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {

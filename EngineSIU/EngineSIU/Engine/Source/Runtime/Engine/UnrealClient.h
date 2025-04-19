@@ -60,6 +60,32 @@ struct FRenderTargetRHI
     }
 };
 
+struct FDepthStencilRHI
+{
+    ID3D11Texture2D* Texture2D = nullptr;
+    ID3D11DepthStencilView* DSV = nullptr;
+    ID3D11ShaderResourceView* SRV = nullptr;
+
+    void Release()
+    {
+        if (SRV)
+        {
+            SRV->Release();
+            SRV = nullptr;
+        }
+        if (DSV)
+        {
+            DSV->Release();
+            DSV = nullptr;
+        }
+        if (Texture2D)
+        {
+            Texture2D->Release();
+            Texture2D = nullptr;
+        }
+    }
+};
+
 class FViewportResource
 {
 public:
@@ -72,26 +98,18 @@ public:
     void Release();
 
     HRESULT CreateResource(EResourceType Type);
+    HRESULT CreateDepthStencilResource(EDepthType Type);
     
     D3D11_VIEWPORT& GetD3DViewport() { return D3DViewport; }
-    
-    ID3D11Texture2D*& GetDepthStencilTexture() { return DepthStencilTexture; }
-    ID3D11DepthStencilView*& GetDepthStencilView() { return DepthStencilView; }
-    ID3D11ShaderResourceView*& GetDepthStencilSRV() { return DepthStencilSRV; }
-
-    ID3D11Texture2D*& GetShadowDepthStencilTexture() { return ShadowDepthStencilTexture; }
-    ID3D11DepthStencilView*& GetShadowDepthStencilView() { return ShadowDepthStencilView; }
-    ID3D11ShaderResourceView*& GetShadowDepthStencilSRV() { return ShadowDepthStencilSRV; }
-    
-    ID3D11Texture2D*& GetGizmoDepthStencilTexture() { return GizmoDepthStencilTexture; }
-    ID3D11DepthStencilView*& GetGizmoDepthStencilView() { return GizmoDepthStencilView; }
-
     TMap<EResourceType, FRenderTargetRHI>& GetRenderTargets();
+    TMap<EDepthType, FDepthStencilRHI>& GetDepthStencils();
 
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
     FRenderTargetRHI* GetRenderTarget(EResourceType Type);
+    FDepthStencilRHI* GetDepthStencil(EDepthType Type);
 
     bool HasRenderTarget(EResourceType Type) const;
+    bool HasDepthStencil(EDepthType Type) const;
 
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearRenderTargets(ID3D11DeviceContext* DeviceContext);
@@ -99,6 +117,7 @@ public:
     // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
     void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
 
+    void ClearDepthStencils(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 Depth Stencil 뷰를 clear. 없는 경우 생성해서 clear.
     void ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EDepthType Type);
     
@@ -108,22 +127,12 @@ private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
-    ID3D11Texture2D* DepthStencilTexture = nullptr;
-    ID3D11DepthStencilView* DepthStencilView = nullptr;
-    ID3D11ShaderResourceView* DepthStencilSRV = nullptr;
-
-    ID3D11Texture2D* ShadowDepthStencilTexture = nullptr;
-    ID3D11DepthStencilView* ShadowDepthStencilView = nullptr;
-    ID3D11ShaderResourceView* ShadowDepthStencilSRV = nullptr;
-    
-    ID3D11Texture2D* GizmoDepthStencilTexture = nullptr;
-    ID3D11DepthStencilView* GizmoDepthStencilView = nullptr;
-
     TMap<EResourceType, FRenderTargetRHI> RenderTargets;
 
-    HRESULT CreateDepthStencilResources();
+    TMap<EDepthType, FDepthStencilRHI> DepthStencils;
 
     void ReleaseDepthStencilResources();
+    void ReleaseDepthStencilResource(EDepthType Type);
     void ReleaseResources();
     void ReleaseResource(EResourceType Type);
 

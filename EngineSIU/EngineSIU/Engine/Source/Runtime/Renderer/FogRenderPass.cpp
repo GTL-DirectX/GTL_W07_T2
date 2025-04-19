@@ -110,7 +110,7 @@ void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewpo
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
     Graphics->DeviceContext->OMSetBlendState(BlendState, nullptr, 0xffffffff);
 
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &ViewportResource->GetDepthStencilSRV());
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &ViewportResource->GetDepthStencil(EDepthType::EDT_Depth)->SRV);
     
     PrepareRenderState();
     

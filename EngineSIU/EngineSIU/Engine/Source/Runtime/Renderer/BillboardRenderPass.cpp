@@ -141,7 +141,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
 
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencilView());
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_Depth)->DSV);
 
     PrepareTextureShader();
 
