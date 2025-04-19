@@ -1,10 +1,9 @@
 #include "DXDShaderManager.h"
-#include "Define.h"
-#include <filesystem>
+
+#include <d3dcompiler.h>
 #include <fstream>
-#include <sstream>
-#include <unordered_set>
-#include <functional>
+
+#include "Define.h"
 
 FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
     : DXDDevice(Device)
@@ -53,14 +52,16 @@ void FDXDShaderManager::UpdateShaderIfOutdated(const std::wstring Key, const std
         ShaderTimeStamps.Add(Key, currentTime);
         return;
     }
-    if (*FoundTime == currentTime) // Map에 저장된 마지막 수정 타임이 현재와 똑같을 경우
-        return;
+    // if (*FoundTime == currentTime) // Map에 저장된 마지막 수정 타임이 현재와 똑같을 경우
+    //     return;
 
     if (IsVertexShader)
     {
         // Vertex Shader Map에 존재한다면 해당 VS, Input Layout 제거
         if (VertexShaders.Contains(Key)) { VertexShaders[Key]->Release(); VertexShaders[Key] = nullptr; }
         if (InputLayouts.Contains(Key)) { InputLayouts[Key]->Release();    InputLayouts[Key] = nullptr; }
+
+        ShaderTimeStamps[Key] = currentTime;
 
         (Defines)
             ? AddVertexShaderAndInputLayout(Key, FilePath, EntryPoint, Layout, LayoutSize, Defines)
@@ -93,10 +94,10 @@ void FDXDShaderManager::RegisterShaderForReload(std::wstring Key, std::wstring F
             D3D_SHADER_MACRO CopyMacro;
             CopyMacro.Name = _strdup(Defines->Name); // LPCSTR = char* 버전
             CopyMacro.Definition = _strdup(Defines->Definition);
-            Info.Defines.emplace_back(CopyMacro);
+            Info.Defines.Emplace(CopyMacro);
             ++Defines;
         }
-        Info.Defines.emplace_back(D3D_SHADER_MACRO{ nullptr, nullptr });
+        Info.Defines.Emplace(D3D_SHADER_MACRO{ nullptr, nullptr });
     }
 
     if (Layout && LayoutSize > 0)
@@ -104,7 +105,7 @@ void FDXDShaderManager::RegisterShaderForReload(std::wstring Key, std::wstring F
         Info.Layout.assign(Layout, Layout + LayoutSize);
     }
 
-    RegisteredShaders.push_back(Info);
+    RegisteredShaders.Add(Info);
 
     // 메인 셰이더 파일의 타임스탬프를
     if (std::filesystem::exists(FilePath))
@@ -121,10 +122,14 @@ void FDXDShaderManager::ReloadAllShaders()
    auto Copied = RegisteredShaders;
    bool bAnyUpdated = false;
    for (const auto& Shader : Copied)
-   {  
-       if (!IsOutdatedWithDependency(Shader)) { continue; } // 갱신 필요없으면 skip
+   {
+       // 갱신 필요없으면 skip
+       if (!IsOutdatedWithDependency(Shader))
+       {
+           continue;
+       }
 
-       const D3D_SHADER_MACRO* definesPtr = Shader.Defines.empty() ? nullptr : Shader.Defines.data();
+       const D3D_SHADER_MACRO* definesPtr = Shader.Defines.IsEmpty() ? nullptr : Shader.Defines.GetData();
        const D3D11_INPUT_ELEMENT_DESC* layoutPtr = Shader.Layout.empty() ? nullptr : Shader.Layout.data();
        UpdateShaderIfOutdated(
            Shader.Key,
