@@ -1,13 +1,11 @@
 #pragma once
 #define _TCHAR_DEFINED
 #include <d3d11.h>
-#include <d3dcompiler.h>
 #include <filesystem>
-#include <chrono>
+
 #include "Container/Map.h"
 #include "Container/Array.h"
 #include "Container/Set.h"
-#include <vector>
 
 //#define Multi_Shader_Include // 중첩 헤더 파일 지원 플래그 (주석 해제시 재귀적으로 include 검사/갱신)
 struct FVertexShaderData
@@ -21,7 +19,7 @@ struct FShaderReloadInfo {
     std::wstring FilePath;
     std::string EntryPoint;
     bool IsVertexShader;
-    std::vector<D3D_SHADER_MACRO> Defines;
+    TArray<D3D_SHADER_MACRO> Defines;
     std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
 
     FShaderReloadInfo() = default;
@@ -72,7 +70,7 @@ private:
 	TMap<std::wstring, ID3D11VertexShader*> VertexShaders;
 	TMap<std::wstring, ID3D11PixelShader*> PixelShaders;
     TMap<std::wstring, std::filesystem::file_time_type> ShaderTimeStamps;
-    std::vector<FShaderReloadInfo> RegisteredShaders;
+    TArray<FShaderReloadInfo> RegisteredShaders;
 
     TMap<std::wstring, TSet<std::wstring>> ShaderDependencyGraph;
 };
