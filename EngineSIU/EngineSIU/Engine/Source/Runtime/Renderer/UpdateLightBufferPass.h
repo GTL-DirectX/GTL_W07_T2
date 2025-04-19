@@ -1,18 +1,21 @@
 #pragma once
 
 #include "IRenderPass.h"
-#include "EngineBaseTypes.h"
-#include "Container/Set.h"
 #include "Define.h"
+
+struct FAmbientLightInfo;
+struct FDirectionalLightInfo;
+struct FSpotLightInfo;
+struct FPointLightInfo;
 
 class FDXDShaderManager;
 class UWorld;
 class FEditorViewportClient;
 
+class UAmbientLightComponent;
+class UDirectionalLightComponent;
 class UPointLightComponent;
 class USpotLightComponent;
-class UDirectionalLightComponent;
-class UAmbientLightComponent;
 
 class FUpdateLightBufferPass : public IRenderPass
 {
@@ -25,6 +28,12 @@ public:
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
     void UpdateLightBuffer() const;
+
+private:
+    FAmbientLightInfo GetAmbientLightInfo(const UAmbientLightComponent* LightComp) const;
+    FDirectionalLightInfo GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const;
+    FPointLightInfo GetPointLightInfo(const UPointLightComponent* LightComp) const;
+    FSpotLightInfo GetSpotLightInfo(const USpotLightComponent* LightComp) const;
 
 private:
     TArray<USpotLightComponent*> SpotLights;

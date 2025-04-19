@@ -222,7 +222,7 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
         UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
         AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
         Engine->SelectActor(NewActor);
-        Engine->DeselectComponent(Engine->GetSelectedComponent());
+        Engine->DeSelectComponent(Engine->GetSelectedComponent());
     }
     
     if (ImGui::TreeNodeEx("Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
@@ -308,7 +308,7 @@ void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent*
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
         ImGui::TreePop();
     }
 
@@ -323,7 +323,7 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 150.0f, "%.1f"))
@@ -346,7 +346,7 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
@@ -372,7 +372,7 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
@@ -386,14 +386,14 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
         FVector LightDirection = LightComponent->GetDirection();
         FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
                 
-        float InnerDegree = LightComponent->GetInnerDegree();
+        float InnerDegree = LightComponent->GetInnerAngle();
         if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 180.f, "%.1f")) {
-            LightComponent->SetInnerDegree(InnerDegree);
+            LightComponent->SetInnerAngle(InnerDegree);
         }
 
-        float OuterDegree = LightComponent->GetOuterDegree();
+        float OuterDegree = LightComponent->GetOuterAngle();
         if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 180.f, "%.1f")) {
-            LightComponent->SetOuterDegree(OuterDegree);
+            LightComponent->SetOuterAngle(OuterDegree);
         }
 
         ImGui::TreePop();

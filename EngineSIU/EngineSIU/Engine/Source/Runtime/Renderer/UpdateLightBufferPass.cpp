@@ -86,11 +86,40 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
     int SpotLightsCount=0;
     int AmbientLightsCount=0;
     
-    for (auto Light : SpotLights)
+    for (UDirectionalLightComponent* Light : DirectionalLights)
+    {
+        if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
+        {
+            LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
+            LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
+
+            
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+            // TODO 임시값
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100000, 100000, 0.0001f, D3D11_FLOAT32_MAX);
+            
+            LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
+            LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
+            
+            DirectionalLightsCount++;
+        }
+    }
+
+    for (UAmbientLightComponent* Light : AmbientLights)
+    {
+        if (AmbientLightsCount < MAX_DIRECTIONAL_LIGHT)
+        {
+            LightBufferData.Ambient[AmbientLightsCount] = GetAmbientLightInfo(Light);
+            LightBufferData.Ambient[AmbientLightsCount].AmbientColor = Light->GetLightColor();
+            AmbientLightsCount++;
+        }
+    }
+    
+    for (USpotLightComponent* Light : SpotLights)
     {        
         if (SpotLightsCount < MAX_SPOT_LIGHT)
         {
-            LightBufferData.SpotLights[SpotLightsCount] = Light->GetSpotLightInfo();
+            LightBufferData.SpotLights[SpotLightsCount] = GetSpotLightInfo(Light);
             LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
             LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
 
@@ -105,11 +134,11 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
         }
     }
 
-    for (auto Light : PointLights)
+    for (UPointLightComponent* Light : PointLights)
     {
         if (PointLightsCount < MAX_POINT_LIGHT)
         {
-            LightBufferData.PointLights[PointLightsCount] = Light->GetPointLightInfo();
+            LightBufferData.PointLights[PointLightsCount] = GetPointLightInfo(Light);
             LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
 
             FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
@@ -122,34 +151,6 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             PointLightsCount++;
         }
     }
-
-    for (auto Light : DirectionalLights)
-    {
-        if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
-        {
-            LightBufferData.Directional[DirectionalLightsCount] = Light->GetDirectionalLightInfo();
-            LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
-
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
-            // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100000, 100000, 0.0001f, D3D11_FLOAT32_MAX);
-            
-            LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
-            LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
-            
-            DirectionalLightsCount++;
-        }
-    }
-
-    for (auto Light : AmbientLights)
-    {
-        if (AmbientLightsCount < MAX_DIRECTIONAL_LIGHT)
-        {
-            LightBufferData.Ambient[AmbientLightsCount] = Light->GetAmbientLightInfo();
-            LightBufferData.Ambient[AmbientLightsCount].AmbientColor = Light->GetLightColor();
-            AmbientLightsCount++;
-        }
-    }
     
     LightBufferData.DirectionalLightsCount = DirectionalLightsCount;
     LightBufferData.PointLightsCount = PointLightsCount;
@@ -158,3 +159,53 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
     BufferManager->UpdateConstantBuffer(TEXT("FLightInfoBuffer"), LightBufferData);
 }
+
+FAmbientLightInfo FUpdateLightBufferPass::GetAmbientLightInfo(const UAmbientLightComponent* LightComp) const
+{
+    FAmbientLightInfo LightInfo = {};
+    LightInfo.AmbientColor = LightComp->GetLightColor();
+    return LightInfo;
+}
+
+FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const
+{
+    FDirectionalLightInfo LightInfo = {};
+    
+    LightInfo.LightColor = LightComp->GetLightColor();
+    LightInfo.Direction = LightComp->GetDirection();
+    LightInfo.Intensity = LightComp->GetIntensity();
+    
+    return LightInfo;
+}
+
+FPointLightInfo FUpdateLightBufferPass::GetPointLightInfo(const UPointLightComponent* LightComp) const
+{
+    FPointLightInfo LightInfo = {};
+    
+    LightInfo.LightColor = LightComp->GetLightColor();
+    LightInfo.Position = LightComp->GetWorldLocation();
+    LightInfo.Radius = LightComp->GetRadius();
+    LightInfo.Intensity = LightComp->GetIntensity();
+    LightInfo.Type = LightComp->GetLightType();
+    LightInfo.Attenuation = LightComp->GetAttenuation();
+    
+    return LightInfo;
+}
+
+FSpotLightInfo FUpdateLightBufferPass::GetSpotLightInfo(const USpotLightComponent* LightComp) const
+{
+    FSpotLightInfo LightInfo = {};
+
+    LightInfo.LightColor = LightComp->GetLightColor();
+    LightInfo.Position = LightComp->GetWorldLocation();
+    LightInfo.Radius = LightComp->GetRadius();
+    LightInfo.Intensity = LightComp->GetIntensity();
+    LightInfo.Type = LightComp->GetLightType();
+    LightInfo.InnerRad = LightComp->GetInnerAngle();
+    LightInfo.OuterRad = LightComp->GetOuterAngle();
+    LightInfo.Attenuation = LightComp->GetAttenuation();
+    LightInfo.Direction = LightComp->GetDirection();
+    
+    return LightInfo;
+}
+

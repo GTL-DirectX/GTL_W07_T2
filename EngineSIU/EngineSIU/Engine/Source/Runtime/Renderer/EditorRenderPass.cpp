@@ -661,8 +661,8 @@ void FEditorRenderPass::RenderSpotlightInstanced()
         {
             FConstantBufferDebugCone b;
             b.ApexPosiiton = SpotComp->GetWorldLocation();
-            b.InnerRadius = SpotComp->GetRadius()*  FMath::Tan(SpotComp->GetInnerRad() * 0.5);
-            b.OuterRadius = SpotComp->GetRadius() * FMath::Tan(SpotComp->GetOuterRad() * 0.5);
+            b.InnerRadius = SpotComp->GetRadius()*  FMath::Tan(SpotComp->GetInnerAngle() * 0.5);
+            b.OuterRadius = SpotComp->GetRadius() * FMath::Tan(SpotComp->GetOuterAngle() * 0.5);
             b.Height = SpotComp->GetRadius();
             b.Direction = SpotComp->GetDirection();
             BufferAll.Add(b);

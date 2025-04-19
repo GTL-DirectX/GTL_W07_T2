@@ -21,8 +21,6 @@ public:
 
     // 텍스처 아틀라스의 셀 수 설정 (행, 열)
     void SetRowColumnCount(int cellsPerRow, int cellsPerColumn);
-   
-    virtual void SetTexture(const FWString& _fileName) override;
     
     FVector2D GetUVOffset() const { return UVOffset; }
     FVector2D GetUVScale() const { return UVScale; }
