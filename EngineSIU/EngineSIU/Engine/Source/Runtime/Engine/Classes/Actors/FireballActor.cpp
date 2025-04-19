@@ -18,7 +18,7 @@ AFireballActor::AFireballActor()
   
     PointLightComponent = AddComponent<UPointLightComponent>("UPointLightComponent_0");
     
-    PointLightComponent->SetLightColor(FLinearColor::Red);
+    PointLightComponent->SetLightColor(FColor::Red);
     
     ProjectileMovementComponent = AddComponent<UProjectileMovementComponent>("UProjectileMovementComponent_0");
     PointLightComponent->AttachToComponent(RootComponent);

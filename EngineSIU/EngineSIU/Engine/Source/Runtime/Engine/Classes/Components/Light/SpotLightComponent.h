@@ -1,4 +1,5 @@
 #pragma once
+
 #include "LightComponent.h"
 
 class USpotLightComponent :public ULightComponent
@@ -6,42 +7,32 @@ class USpotLightComponent :public ULightComponent
     DECLARE_CLASS(USpotLightComponent, ULightComponent)
 public:
     USpotLightComponent();
-    virtual ~USpotLightComponent();
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     void GetProperties(TMap<FString, FString>& OutProperties) const override;
     void SetProperties(const TMap<FString, FString>& InProperties) override;
-    
-    FVector GetDirection();
 
-    const FSpotLightInfo& GetSpotLightInfo() const;
-    void SetSpotLightInfo(const FSpotLightInfo& InSpotLightInfo);
-
-    float GetRadius() const;
-    void SetRadius(float InRadius);
-
-    FLinearColor GetLightColor() const;
-    void SetLightColor(const FLinearColor& InColor);
-
-    float GetIntensity() const;
-    void SetIntensity(float InIntensity);
-
-    int GetType() const;
-    void SetType(int InType);
-
-    float GetInnerRad() const;
-    void SetInnerRad(float InInnerCos);
-
-    float GetOuterRad() const;
-    void SetOuterRad(float InOuterCos);
-
-    float GetInnerDegree() const;
-    void SetInnerDegree(float InInnerDegree);
-
-    float GetOuterDegree() const;
-    void SetOuterDegree(float InOuterDegree);
+    // Getters and Setters
+    FVector GetDirection() const;
+    virtual ELightComponentType GetLightType() const override;
+    float GetRadius() const { return Radius; }
+    void SetRadius(float InRadius) { Radius = InRadius; }
+    float GetInnerAngle() const { return InnerAngle; }
+    void SetInnerAngle(float InInnerAngle) { InnerAngle = InInnerAngle; }
+    float GetOuterAngle() const { return OuterAngle; }
+    void SetOuterAngle(float InOuterAngle) { OuterAngle = InOuterAngle; }
+    float GetAttenuation() const { return Attenuation; }
+    void SetAttenuation(float InAttenuation) { Attenuation = InAttenuation; }
+    float GetFallOffExponent() const { return FallOffExponent; }
+    void SetFallOffExponent(float InFallOffExponent) { FallOffExponent = InFallOffExponent; }
+    // End of Getters and Setters
 
 private:
-    FSpotLightInfo SpotLightInfo;
+    float Radius;
+    float InnerAngle;
+    float OuterAngle;
+    float Attenuation;
+    float FallOffExponent;
+
 };
 

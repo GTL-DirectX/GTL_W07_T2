@@ -1,6 +1,6 @@
 #pragma once
-#include "Components/SceneComponent.h"
 
+#include "Components/SceneComponent.h"
 
 class ULightComponentBase : public USceneComponent
 {
@@ -9,14 +9,27 @@ class ULightComponentBase : public USceneComponent
 public:
     ULightComponentBase();
     virtual ~ULightComponentBase() override;
+
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+    
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    virtual void TickComponent(float DeltaTime) override;
-    virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
+public:
+    float GetIntensity() const { return Intensity; }
+    void SetIntensity(float InIntensity) { Intensity = InIntensity; }
+    FColor GetLightColor() const { return LightColor; }
+    void SetLightColor(const FColor& InColor) { LightColor = InColor; }
+    
 protected:
-
-    FBoundingBox AABB;
+    float Intensity;
+    FColor LightColor;
 
 public:
-    FBoundingBox GetBoundingBox() const {return AABB;}
+    bool GetCastShadows() const { return bCastShadows; }
+    void SetCastShadows(bool InCastShadows) { bCastShadows = InCastShadows; }
+
+protected:
+    bool bCastShadows;
+    
 };
