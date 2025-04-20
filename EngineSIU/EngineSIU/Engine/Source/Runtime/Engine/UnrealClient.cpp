@@ -11,7 +11,7 @@ FViewportResource::FViewportResource()
     ClearColors.Add(EResourceType::ERT_Editor, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_Overlay, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PostProcessCompositing, { 0.f, 0.f, 0.f, 0.f });
-    ClearColors.Add(EResourceType::ERT_ShadowMapVisualization, { 0.f, 0.f, 0.f, 0.f });
+    ClearColors.Add(EResourceType::ERT_ShadowMapVisualization, { 0.f, 0.f, 1.f, 1.f });
 }
 
 FViewportResource::~FViewportResource()
@@ -146,6 +146,7 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
     {
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+        // TODO : Widht, Height Viewprot아닌 다른 사이즈로 하면 RTV도 수정 요함.
         TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
         TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
         TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;

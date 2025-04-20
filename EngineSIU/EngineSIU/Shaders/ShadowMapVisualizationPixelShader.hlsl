@@ -21,6 +21,6 @@ float4 mainPS(PS_INPUT Input) : SV_TARGET
     float DepthLinearized = (2.0 * NearPlane * FarPlane) / (FarPlane + NearPlane - DepthNDC * (FarPlane - NearPlane));
 
     float DepthNormalized = saturate((DepthLinearized - NearPlane) / (FarPlane - NearPlane));
-
-    return float4(DepthNormalized, DepthNormalized, DepthNormalized, 1.0);
+    //return float4(1,0, 1, 1.0);
+    return float4(DepthNormalized, DepthNormalized, DepthNormalized, 0);
 }

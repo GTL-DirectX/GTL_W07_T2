@@ -93,10 +93,13 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
 
-            
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+           /* FMatrix RotationMatrix = Light->GetRotationMatrix();
+            FMatrix TransposedRotMat = FMatrix::Transpose(RotationMatrix);
+            FMatrix TranslationMatrix = Light->GetTranslationMatrix();
+            FMatrix ViewMatrix = TransposedRotMat * TranslationMatrix;*/
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100000, 100000, 0.0001f, D3D11_FLOAT32_MAX);
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 1000);
             
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
@@ -107,7 +110,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
     for (UAmbientLightComponent* Light : AmbientLights)
     {
-        if (AmbientLightsCount < MAX_DIRECTIONAL_LIGHT)
+        if (AmbientLightsCount < MAX_AMBIENT_LIGHT)
         {
             LightBufferData.Ambient[AmbientLightsCount] = GetAmbientLightInfo(Light);
             LightBufferData.Ambient[AmbientLightsCount].AmbientColor = Light->GetLightColor();
@@ -123,9 +126,9 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
             LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
 
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
-            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(Light->GetOuterAngle(), 1, 0.001, Light->GetRadius());
+            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::RadiansToDegrees(Light->GetOuterAngle()), 1, 0.001, Light->GetRadius());
             
             LightBufferData.SpotLights[SpotLightsCount].View = ViewMatrix;
             LightBufferData.SpotLights[SpotLightsCount].Projection = ProjectionMatrix;

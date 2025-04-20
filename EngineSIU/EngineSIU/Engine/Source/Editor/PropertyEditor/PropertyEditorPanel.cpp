@@ -347,7 +347,7 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
             ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
             ->SRV;
 
-        ID3D11Resource* originalResource = nullptr;
+        /*ID3D11Resource* originalResource = nullptr;
         originalSRV->GetResource(&originalResource);
 
         ID3D11Texture2D* originalTexture = nullptr;
@@ -366,8 +366,8 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         ID3D11ShaderResourceView* copiedSRV = nullptr;
         GEngineLoop.GraphicDevice.Device->CreateShaderResourceView(copiedTexture, nullptr, &copiedSRV);
-
-        ImTextureID texId = (ImTextureID)copiedSRV;
+        */
+        ImTextureID texId = (ImTextureID)originalSRV;
         ImGui::Image(texId, ImVec2(256, 256));
         ImGui::TreePop();
     }
@@ -448,12 +448,14 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
         auto srv = GEngineLoop.GetLevelEditor()
             ->GetActiveViewportClient()
             ->GetViewportResource()
-            ->GetDepthStencil(EDepthType::EDT_ShadowDepth)
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
             ->SRV;
+
 
         ImTextureID texId = (ImTextureID)srv;
 
         ImGui::Image(texId, ImVec2(256, 256));
+
         ImGui::TreePop();
     }
 

@@ -51,7 +51,7 @@ void FShadowRenderPass::CreateShader()
         return;
     }    
 
-    hr = ShaderManager->AddPixelShader(L"ShadowShader", L"Shaders/ShadowMapVisualizationPixelShader.hlsl", "mainPS");
+    hr = ShaderManager->AddPixelShader(L"ShadowPixelShader", L"Shaders/Shadow.hlsl", "mainPS");
     if (FAILED(hr))
     {
         // MessageBox(hwnd, L"failed!", L"Error", MB_ICONERROR | MB_OK);
@@ -59,7 +59,7 @@ void FShadowRenderPass::CreateShader()
     }
 
     VertexShader = ShaderManager->GetVertexShaderByKey(L"ShadowVertexShader");
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"ShadowShader");
+    PixelShader = ShaderManager->GetPixelShaderByKey(L"ShadowPixelShader");
     InputLayout = ShaderManager->GetInputLayoutByKey(L"ShadowVertexShader");
 }
 
@@ -96,6 +96,7 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
 
     // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
     ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
+    ViewportResource->ClearRenderTarget(Graphics->DeviceContext, EResourceType::ERT_ShadowMapVisualization);
     Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
@@ -117,7 +118,7 @@ void FShadowRenderPass::UpdateLightIndex(uint32 index) const
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
-    ObjectData.FarPlane = 30.0f;
+    ObjectData.FarPlane = 1000.0f;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }
