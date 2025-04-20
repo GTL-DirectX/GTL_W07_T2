@@ -97,9 +97,22 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             FMatrix TransposedRotMat = FMatrix::Transpose(RotationMatrix);
             FMatrix TranslationMatrix = Light->GetTranslationMatrix();
             FMatrix ViewMatrix = TransposedRotMat * TranslationMatrix;*/
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
+            
+            FMatrix ViewMatrix;
+
+            
+            ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());
+            
+            /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
+                ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f });
+            }
+
+            else {
+                ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });
+            }*/
+            
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 1000);
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(1000, 1000, 0.1f, 1000);
             
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;

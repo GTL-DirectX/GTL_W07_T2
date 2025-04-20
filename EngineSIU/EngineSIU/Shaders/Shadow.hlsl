@@ -9,7 +9,10 @@ struct VS_OUTPUT
 
 cbuffer VSConstants : register(b1)
 {
-    uint LightIndex : INDEX;
+    uint LightIndex;
+    float NearPlane; 
+    float FarPlane;
+    float2 Padding;
 }
 
 VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)

@@ -62,7 +62,7 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
         LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
     }
     
-    float4 LightViewPos = mul(Input.WorldPosition, LightViewMatrix);
+    float4 LightViewPos = mul(float4(Input.WorldPosition, 1.0f), LightViewMatrix);
     float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
     
     float2 ShadowMapTexCoord = {
