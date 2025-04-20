@@ -81,11 +81,11 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 {
     FLightInfoBuffer LightBufferData = {};
 
-    int DirectionalLightsCount=0;
-    int PointLightsCount=0;
-    int SpotLightsCount=0;
-    int AmbientLightsCount=0;
-    
+    int DirectionalLightsCount = 0;
+    int PointLightsCount = 0;
+    int SpotLightsCount = 0;
+    int AmbientLightsCount = 0;
+
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
         if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
@@ -100,7 +100,6 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             
             FMatrix ViewMatrix;
 
-            
             ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());
             
             /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
@@ -112,11 +111,10 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             }*/
             
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(1000, 1000, 0.1f, 1000);
-            
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(1000, 1000, 0.01f, 1000);
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
-            
+
             DirectionalLightsCount++;
         }
     }
@@ -130,9 +128,9 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             AmbientLightsCount++;
         }
     }
-    
+
     for (USpotLightComponent* Light : SpotLights)
-    {        
+    {
         if (SpotLightsCount < MAX_SPOT_LIGHT)
         {
             LightBufferData.SpotLights[SpotLightsCount] = GetSpotLightInfo(Light);
@@ -142,10 +140,10 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
             FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::RadiansToDegrees(Light->GetOuterAngle()), 1, 0.001, Light->GetRadius());
-            
+
             LightBufferData.SpotLights[SpotLightsCount].View = ViewMatrix;
             LightBufferData.SpotLights[SpotLightsCount].Projection = ProjectionMatrix;
-            
+
             SpotLightsCount++;
         }
     }
@@ -160,14 +158,14 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
             // TODO: 임시값
             FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(90), 1, 0.001, D3D11_FLOAT32_MAX);
-            
+
             LightBufferData.PointLights[PointLightsCount].View = ViewMatrix;
             LightBufferData.PointLights[PointLightsCount].Projection = ProjectionMatrix;
 
             PointLightsCount++;
         }
     }
-    
+
     LightBufferData.DirectionalLightsCount = DirectionalLightsCount;
     LightBufferData.PointLightsCount = PointLightsCount;
     LightBufferData.SpotLightsCount = SpotLightsCount;
@@ -186,25 +184,25 @@ FAmbientLightInfo FUpdateLightBufferPass::GetAmbientLightInfo(const UAmbientLigh
 FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const
 {
     FDirectionalLightInfo LightInfo = {};
-    
+
     LightInfo.LightColor = LightComp->GetLightColor();
     LightInfo.Direction = LightComp->GetDirection();
     LightInfo.Intensity = LightComp->GetIntensity();
-    
+
     return LightInfo;
 }
 
 FPointLightInfo FUpdateLightBufferPass::GetPointLightInfo(const UPointLightComponent* LightComp) const
 {
     FPointLightInfo LightInfo = {};
-    
+
     LightInfo.LightColor = LightComp->GetLightColor();
     LightInfo.Position = LightComp->GetWorldLocation();
     LightInfo.Radius = LightComp->GetRadius();
     LightInfo.Intensity = LightComp->GetIntensity();
     LightInfo.Type = LightComp->GetLightType();
     LightInfo.Attenuation = LightComp->GetAttenuation();
-    
+
     return LightInfo;
 }
 
@@ -221,7 +219,7 @@ FSpotLightInfo FUpdateLightBufferPass::GetSpotLightInfo(const USpotLightComponen
     LightInfo.OuterRad = LightComp->GetOuterAngle();
     LightInfo.Attenuation = LightComp->GetAttenuation();
     LightInfo.Direction = LightComp->GetDirection();
-    
+
     return LightInfo;
 }
 

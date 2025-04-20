@@ -39,5 +39,5 @@ FVector UDirectionalLightComponent::GetDirection() const
 {
     FRotator rotator = GetWorldRotation();
     FVector WorldDown= rotator.ToQuaternion().RotateVector(GetForwardVector());
-    return WorldDown;  
+    return WorldDown;
 }

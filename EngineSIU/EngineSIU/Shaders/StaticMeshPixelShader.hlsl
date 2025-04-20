@@ -81,7 +81,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 
     float ShadowMapLight = GetLightFromShadowMap(Input);
 
-
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
     if (Material.TextureFlag & (1 << 1))
@@ -98,7 +97,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         Normal = normalize(2.f * Normal - 1.f);
         WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
     }
-    
     
     // Lighting
     if (IsLit)

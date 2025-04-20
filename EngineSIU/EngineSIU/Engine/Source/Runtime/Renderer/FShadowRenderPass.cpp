@@ -97,7 +97,33 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
     ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, EResourceType::ERT_ShadowMapVisualization);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV);
+
+    /***********************임시 추후 수정 필요/***********************/
+    ID3D11DepthStencilView* DepthStencilView = ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV;
+
+    ID3D11Resource* depthResource = nullptr;
+    DepthStencilView->GetResource(&depthResource);
+
+    ID3D11Texture2D* depthTexture = nullptr;
+    depthResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&depthTexture);
+    depthResource->Release(); // QueryInterface했으므로 Release 필요
+
+    D3D11_TEXTURE2D_DESC depthDesc;
+    depthTexture->GetDesc(&depthDesc);
+    depthTexture->Release(); // 사용 후 Release
+
+    D3D11_VIEWPORT g_ShadowViewport;
+
+    g_ShadowViewport.Width = (FLOAT)depthDesc.Width;
+    g_ShadowViewport.Height = (FLOAT)depthDesc.Height;
+    g_ShadowViewport.MinDepth = 0.0f;
+    g_ShadowViewport.MaxDepth = 1.0f;
+    g_ShadowViewport.TopLeftX = 0;
+    g_ShadowViewport.TopLeftY = 0;
+    /***********************임시 추후 수정 필요/***********************/
+
+    Graphics->DeviceContext->RSSetViewports(1, &g_ShadowViewport);
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilView);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
