@@ -121,7 +121,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
     
-    FinalColor *= ShadowMapLight;
+    //FinalColor *= ShadowMapLight;
     
     return FinalColor;
 }
