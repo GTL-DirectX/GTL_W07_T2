@@ -7,7 +7,6 @@ SamplerComparisonState ShadowSampler : register(s2);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
-Texture2D ShadowMap : register(t104);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -37,7 +36,7 @@ cbuffer TextureConstants : register(b4)
 float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
     float bias = 0.001f;
-
+    
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
     float4x4 LightViewMatrix;
@@ -71,8 +70,28 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
     };
     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
     LightDistance -= bias;
+
+    float Result = 1;
     
-    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    if (DirectionalLightsCount > LightIndex)
+    {
+        uint TargetIndex = LightIndex;
+
+        Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+    }
+    else if (DirectionalLightsCount + PointLightsCount > LightIndex)
+    {
+        uint TargetIndex = LightIndex - DirectionalLightsCount;
+        //Result = PointShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        Result = 1;
+    }
+    else if (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex)
+    {
+        uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
+        Result = SpotShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+    }
+    
+    return Result;
 }
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target

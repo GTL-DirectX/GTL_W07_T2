@@ -66,6 +66,10 @@ StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t91);
 StructuredBuffer<FPointLightInfo> PointLights : register(t92);
 StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
 
+Texture2DArray<float> DirectionalShadowMap : register(t94);
+TextureCube<float> PointShadowMap : register(t95);
+Texture2DArray<float> SpotShadowMap : register(t96);
+
 cbuffer cbLightCount : register(b0)
 {    
     int DirectionalLightsCount;

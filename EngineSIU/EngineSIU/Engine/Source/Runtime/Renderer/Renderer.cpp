@@ -182,8 +182,9 @@ void FRenderer::PrepareRender(FViewportResource* ViewportResource)
     // Setup Viewport
     Graphics->DeviceContext->RSSetViewports(1, &ViewportResource->GetD3DViewport());
 
-    ViewportResource->ClearDepthStencils(Graphics->DeviceContext);
     ViewportResource->ClearRenderTargets(Graphics->DeviceContext);
+    ViewportResource->ClearDepthStencils(Graphics->DeviceContext);
+    ViewportResource->ClearShadowDepthStencils(Graphics->DeviceContext);
 
     PrepareRenderPass();
 }

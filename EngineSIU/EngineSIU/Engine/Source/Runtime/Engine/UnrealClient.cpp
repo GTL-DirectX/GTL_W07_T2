@@ -72,12 +72,18 @@ void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
     {
         CreateResource(Type);
     }
+
+    for (auto& [Type, Resource] : ShadowDepthStencils)
+    {
+        CreateShadowDepthStencilResource(Type);
+    }
 }
 
 void FViewportResource::Release()
 {
-    ReleaseDepthStencilResources();
     ReleaseResources();
+    ReleaseDepthStencilResources();
+    ReleaseShadowResources();
 }
 
 HRESULT FViewportResource::CreateResource(EResourceType Type)
@@ -141,8 +147,108 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
     FDepthStencilRHI NewResource;
     
     HRESULT hr = S_OK;
+    
+    D3D11_TEXTURE2D_DESC TextureDesc = {};
+    TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
+    TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
+    TextureDesc.MipLevels = 1;
+    TextureDesc.ArraySize = 1;
+    TextureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+    TextureDesc.SampleDesc.Count = 1;
+    TextureDesc.SampleDesc.Quality = 0;
+    TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+    TextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    TextureDesc.CPUAccessFlags = 0;
+    TextureDesc.MiscFlags = 0;
+    NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
+    
+    D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc = {};
+    DSVDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    DSVDesc.Texture2D.MipSlice = 0;
+    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &NewResource.DSV);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
 
-    if (Type == EDepthType::EDT_ShadowDepth)
+    D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+    SRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    SRVDesc.Texture2D.MostDetailedMip = 0;
+    SRVDesc.Texture2D.MipLevels = 1;
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D,  &SRVDesc,  &NewResource.SRV);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
+    DepthStencils.Add(Type, NewResource);
+
+    return hr;
+}
+
+HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Type)
+{
+    // TODO : 나중에 Static Light, Caster, Receiver에 따라 Depth Map 캐싱데이터 재사용 하기
+    if (HasShadowDepthStencil(Type))
+    {
+        ReleaseShadowResource(Type);
+    }
+    
+    FShadowDepthStencilRHI NewResource;
+    
+    HRESULT hr = S_OK;
+
+    if (Type == EShadowDepthType::ESDT_Point)
+    {
+        D3D11_TEXTURE2D_DESC TextureDesc;
+        ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+        // TODO : Widht, Height Viewprot아닌 다른 사이즈로 하면 RTV도 수정 요함.
+        TextureDesc.Width = 1024;
+        TextureDesc.Height = 1024;
+        TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        TextureDesc.MipLevels = 1;
+        TextureDesc.ArraySize = 6;
+        TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+        TextureDesc.CPUAccessFlags = 0;
+        TextureDesc.SampleDesc.Count = 1;
+        TextureDesc.SampleDesc.Quality = 0;
+        TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+        TextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+        NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
+    
+        D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc;
+        ZeroMemory(&DSVDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+        DSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY; //D3D11_DSV_DIMENSION_TEXTURE2DARRAY
+        DSVDesc.Texture2DArray.MipSlice = 0;
+        DSVDesc.Texture2DArray.ArraySize = 1;
+
+        for (int i = 0; i < 6; i++)
+        {
+            DSVDesc.Texture2DArray.FirstArraySlice = i; // Slice Index
+            ID3D11DepthStencilView* TempDSV = nullptr;
+            hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc, &TempDSV);
+            NewResource.DSVs.Add(TempDSV);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
+        }
+    
+        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+        ZeroMemory(&SRVDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;    //D3D11_SRV_DIMENSION_TEXTURE2DARRAY
+        SRVDesc.Texture2DArray.MipLevels = 1;
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D,  &SRVDesc,  &NewResource.SRV);
+        if (FAILED(hr))
+        {
+            return hr;
+        } 
+    }
+    else
     {
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
@@ -164,7 +270,10 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
         DSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
         DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         DSVDesc.Texture2D.MipSlice = 0;
-        hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &NewResource.DSV);
+        
+        ID3D11DepthStencilView* TempDSV = nullptr;
+        hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &TempDSV);
+        NewResource.DSVs.Add(TempDSV);
         if (FAILED(hr))
         {
             return hr;
@@ -179,46 +288,53 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
         if (FAILED(hr))
         {
             return hr;
-        }    
-    }
-    else
-    {
-        D3D11_TEXTURE2D_DESC TextureDesc = {};
-        TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
-        TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
-        TextureDesc.MipLevels = 1;
-        TextureDesc.ArraySize = 1;
-        TextureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-        TextureDesc.SampleDesc.Count = 1;
-        TextureDesc.SampleDesc.Quality = 0;
-        TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-        TextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-        TextureDesc.CPUAccessFlags = 0;
-        TextureDesc.MiscFlags = 0;
-        NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
-    
-        D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc = {};
-        DSVDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        DSVDesc.Texture2D.MipSlice = 0;
-        hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &NewResource.DSV);
-        if (FAILED(hr))
-        {
-            return hr;
         }
+    }
 
-        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        SRVDesc.Texture2D.MostDetailedMip = 0;
-        SRVDesc.Texture2D.MipLevels = 1;
-        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D,  &SRVDesc,  &NewResource.SRV);
-        if (FAILED(hr))
-        {
-            return hr;
-        }
-    }
-    DepthStencils.Add(Type, NewResource);
+    // TextureArray 하던거
+        //     D3D11_TEXTURE2D_DESC TextureDesc;
+        // ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+        // // TODO : Widht, Height Viewprot아닌 다른 사이즈로 하면 RTV도 수정 요함.
+        // TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
+        // TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
+        // TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        // TextureDesc.MipLevels = 0;
+        // TextureDesc.ArraySize = ArraySize;
+        // TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+        // TextureDesc.CPUAccessFlags = 0;
+        // TextureDesc.SampleDesc.Count = 1;
+        // TextureDesc.SampleDesc.Quality = 0;
+        // TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+        // NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
+        //
+        // D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc;
+        // ZeroMemory(&DSVDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+        // DSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        // DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+        // DSVDesc.Texture2DArray.MipSlice = 0;
+        // DSVDesc.Texture2DArray.FirstArraySlice = 2;  // <-- 원하는 Slice
+        // DSVDesc.Texture2DArray.ArraySize = 1;
+        // hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &NewResource.DSV);
+        // if (FAILED(hr))
+        // {
+        //     return hr;
+        // }
+        //
+        // D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+        // ZeroMemory(&SRVDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+        // SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        // SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        // SRVDesc.Texture2DArray.MostDetailedMip = 0;
+        // SRVDesc.Texture2DArray.MipLevels = 1;
+        // SRVDesc.Texture2DArray.FirstArraySlice = 0;
+        // SRVDesc.Texture2DArray.ArraySize = ArraySize;
+        // hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D,  &SRVDesc,  &NewResource.SRV);
+        // if (FAILED(hr))
+        // {
+        //     return hr;
+        // }
+
+    ShadowDepthStencils.Add(Type, NewResource);
 
     return hr;
 }
@@ -233,6 +349,11 @@ bool FViewportResource::HasDepthStencil(EDepthType Type) const
     return DepthStencils.Contains(Type);
 }
 
+bool FViewportResource::HasShadowDepthStencil(EShadowDepthType Type) const
+{
+    return ShadowDepthStencils.Contains(Type);
+}
+
 TMap<EResourceType, FRenderTargetRHI>& FViewportResource::GetRenderTargets()
 {
     return RenderTargets;
@@ -241,6 +362,11 @@ TMap<EResourceType, FRenderTargetRHI>& FViewportResource::GetRenderTargets()
 TMap<EDepthType, FDepthStencilRHI>& FViewportResource::GetDepthStencils()
 {
     return DepthStencils;
+}
+
+TMap<EShadowDepthType, FShadowDepthStencilRHI>& FViewportResource::GetShadowDepthStencils()
+{
+    return ShadowDepthStencils;
 }
 
 FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type)
@@ -265,6 +391,18 @@ FDepthStencilRHI* FViewportResource::GetDepthStencil(EDepthType Type)
         }
     }
     return DepthStencils.Find(Type);
+}
+
+FShadowDepthStencilRHI* FViewportResource::GetShadowDepthStencil(EShadowDepthType Type)
+{
+    if (!ShadowDepthStencils.Contains(Type))
+    {
+        if (FAILED(CreateShadowDepthStencilResource(Type)))
+        {
+            return nullptr;
+        }
+    }
+    return ShadowDepthStencils.Find(Type);
 }
 
 // 기존 EDepthType::EDT_Depth를 같이 Clear하고 있었음. 고려 필요
@@ -297,6 +435,28 @@ void FViewportResource::ClearDepthStencil(ID3D11DeviceContext* DeviceContext, ED
     if (FDepthStencilRHI* Resource = GetDepthStencil(Type))
     {
         DeviceContext->ClearDepthStencilView(Resource->DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    }
+}
+
+void FViewportResource::ClearShadowDepthStencils(ID3D11DeviceContext* DeviceContext)
+{
+    for (auto& [Type, Resource] : ShadowDepthStencils)
+    {
+        for (auto* DSV : Resource.DSVs)
+        {
+            DeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        }
+    }
+}
+
+void FViewportResource::ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type)
+{
+    if (FShadowDepthStencilRHI* Resource = GetShadowDepthStencil(Type))
+    {
+        for (auto* DSV : Resource->DSVs)
+        {
+            DeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        }
     }
 }
 
@@ -341,6 +501,21 @@ void FViewportResource::ReleaseResource(EResourceType Type)
     }
 }
 
+void FViewportResource::ReleaseShadowResources()
+{
+    for (auto& [Type, Resource] : ShadowDepthStencils)
+    {
+        Resource.Release();
+    }
+}
+
+void FViewportResource::ReleaseShadowResource(EShadowDepthType Type)
+{
+    if (HasShadowDepthStencil(Type))
+    {
+        ShadowDepthStencils[Type].Release();
+    }
+}
 
 FViewport::FViewport()
     : FViewport(EViewScreenLocation::EVL_MAX)
