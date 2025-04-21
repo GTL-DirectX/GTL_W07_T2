@@ -1,9 +1,16 @@
 #pragma once
 
-#include "Components/ActorComponent.h"
-#include "UnrealEd/EditorPanel.h"
-#include "Math/Rotator.h"
+#include "Define.h"
+#include "ImGUI/imgui.h"
 
+#include "Math/Color.h"
+
+#include "UnrealEd/EditorPanel.h"
+
+
+class UActorComponent;
+class UMaterial;
+class AActor;
 class USpotLightComponent;
 class UDirectionalLightComponent;
 class UPointLightComponent;
@@ -14,25 +21,6 @@ class UHeightFogComponent;
 class AEditorPlayer;
 class USceneComponent;
 class UStaticMeshComponent;
-
-// 헬퍼 함수 예시
-template<typename Getter, typename Setter>
-void DrawColorProperty(const char* label, Getter get, Setter set)
-{
-    ImGui::PushItemWidth(200.0f);
-    FLinearColor curr = get();
-    float col[4] = { curr.R, curr.G, curr.B, curr.A };
-
-    if (ImGui::ColorEdit4(label, col,
-        ImGuiColorEditFlags_DisplayRGB |
-        ImGuiColorEditFlags_NoSidePreview |
-        ImGuiColorEditFlags_NoInputs |
-        ImGuiColorEditFlags_Float))
-    {
-        set(FLinearColor(col[0], col[1], col[2], col[3]));
-    }
-    ImGui::PopItemWidth();
-}
 
 
 class PropertyEditorPanel : public UEditorPanel
@@ -69,8 +57,29 @@ private:
     void RenderForExponentialHeightFogComponent(UHeightFogComponent* ExponentialHeightFogComp) const;
 
     template<typename T>
-    requires std::derived_from<T, UActorComponent>
-T* GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent);
+        requires std::derived_from<T, UActorComponent>
+    T* GetTargetComponent(AActor* SelectedActor, USceneComponent* SelectedComponent);
+
+
+    // 헬퍼 함수 예시
+    template<typename Getter, typename Setter>
+    static void DrawColorProperty(const char* label, Getter get, Setter set)
+    {
+        ImGui::PushItemWidth(200.0f);
+        FLinearColor curr = get();
+        float col[4] = { curr.R, curr.G, curr.B, curr.A };
+
+        if (ImGui::ColorEdit4(label, col,
+            ImGuiColorEditFlags_DisplayRGB |
+            ImGuiColorEditFlags_NoSidePreview |
+            ImGuiColorEditFlags_NoInputs |
+            ImGuiColorEditFlags_Float))
+        {
+            set(FLinearColor(col[0], col[1], col[2], col[3]));
+        }
+        ImGui::PopItemWidth();
+    }
+    
 private:
     float Width = 0, Height = 0;
     /* Material Property */
