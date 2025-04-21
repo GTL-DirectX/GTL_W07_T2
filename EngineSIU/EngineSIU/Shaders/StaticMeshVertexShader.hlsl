@@ -42,7 +42,7 @@ PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
     Output.MaterialIndex = Input.MaterialIndex;
 
 #ifdef LIGHTING_MODEL_GOURAUD
-    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, float3(1,1,1), float3(1, 1, 1), 250);
+    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, float3(1,1,1), Material.SpecularColor, Material.SpecularScalar);
     Output.Color = float4(Diffuse, 1.0);
 #else
     Output.Color = Input.Color;

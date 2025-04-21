@@ -37,6 +37,29 @@ FMatrix JungleMath::CreateModelMatrix(FVector translation, FQuat rotation, FVect
 FMatrix JungleMath::CreateViewMatrix(FVector eye, FVector target, FVector up)
 {
     FVector zAxis = (target - eye).GetSafeNormal();  // DirectX는 LH이므로 -z가 아니라 +z 사용
+    
+    // 2) up·zAxis 코사인 값으로 평행도 체크
+    const float parallelThreshold = 0.999f;
+    float dotUZ = FVector::DotProduct(up, zAxis);
+
+    // FIXME : 적용 제대로 안됨
+    // 너무 평행하면 다른 업벡터를 시도
+    //if (FMath::Abs(dotUZ) > parallelThreshold)
+    //{
+    //    // worldUp 후보 1
+    //    up = FVector(1, 0, 0);
+    //    dotUZ = FVector::DotProduct(up, zAxis);
+    //    if (FMath::Abs(dotUZ) > parallelThreshold)
+    //    {
+    //        // worldUp 후보 2
+    //        up = FVector(0, 1, 0);
+    //        dotUZ = FVector::DotProduct(up, zAxis);
+    //        if (FMath::Abs(dotUZ) > parallelThreshold) {
+    //            up = FVector(0, 1, 1);
+    //        }
+    //    }
+    //}
+
     FVector xAxis = (up.Cross(zAxis)).GetSafeNormal();
     FVector yAxis = zAxis.Cross(xAxis);
 

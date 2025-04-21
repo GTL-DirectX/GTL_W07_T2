@@ -12,7 +12,6 @@ void FGraphicsDevice::Initialize(HWND hWindow)
     CreateDepthStencilState();
     CreateRasterizerState();
     CreateAlphaBlendState();
-    CurrentRasterizer = RasterizerSolidBack;
 }
 
 void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
@@ -125,6 +124,18 @@ void FGraphicsDevice::CreateRasterizerState()
     RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
     RasterizerDesc.CullMode = D3D11_CULL_BACK;
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerWireframeBack);
+    
+    RasterizerDesc.CullMode = D3D11_CULL_FRONT;
+    RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    RasterizerDesc.FrontCounterClockwise = FALSE;
+    RasterizerDesc.DepthBias = D3D11_DEFAULT_DEPTH_BIAS;
+    RasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
+    RasterizerDesc.SlopeScaledDepthBias = D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+    RasterizerDesc.DepthClipEnable = TRUE;
+    RasterizerDesc.ScissorEnable = FALSE;
+    RasterizerDesc.MultisampleEnable = FALSE;
+    RasterizerDesc.AntialiasedLineEnable = FALSE;
+    Device->CreateRasterizerState(&RasterizerDesc, &RasterizerShadow);
 }
 
 void FGraphicsDevice::ReleaseDeviceAndSwapChain()
@@ -199,6 +210,11 @@ void FGraphicsDevice::ReleaseRasterizerState()
     {
         RasterizerWireframeBack->Release();
         RasterizerWireframeBack = nullptr;
+    }
+    if (RasterizerShadow)
+    {
+        RasterizerShadow->Release();
+        RasterizerShadow = nullptr;
     }
 }
 
@@ -281,25 +297,6 @@ void FGraphicsDevice::CreateAlphaBlendState()
     {
         MessageBox(NULL, L"AlphaBlendState 생성에 실패했습니다!", L"Error", MB_ICONERROR | MB_OK);
     }
-}
-
-void FGraphicsDevice::ChangeRasterizer(EViewModeIndex ViewModeIndex)
-{
-    switch (ViewModeIndex)
-    {
-    case EViewModeIndex::VMI_Wireframe:
-        CurrentRasterizer = RasterizerWireframeBack;
-        break;
-    case EViewModeIndex::VMI_Lit_Gouraud:
-    case EViewModeIndex::VMI_Lit_Lambert:
-    case EViewModeIndex::VMI_Lit_BlinnPhong:
-    case EViewModeIndex::VMI_Unlit:
-    case EViewModeIndex::VMI_SceneDepth:
-    case EViewModeIndex::VMI_WorldNormal:
-        CurrentRasterizer = RasterizerSolidBack;
-        break;
-    }
-    DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
 }
 
 void FGraphicsDevice::CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV)

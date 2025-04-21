@@ -22,6 +22,9 @@ struct FDirectionalLightInfo
 
     float3 Direction;
     float Intensity;
+    
+    row_major matrix ViewMatrix;
+    row_major matrix ProjectionMatrix;
 };
 
 struct FPointLightInfo
@@ -35,6 +38,8 @@ struct FPointLightInfo
     float Intensity;
     float Attenuation;
     float Padding;
+    row_major matrix ViewMatrix;
+    row_major matrix ProjectionMatrix;
 };
 
 struct FSpotLightInfo
@@ -51,6 +56,9 @@ struct FSpotLightInfo
     float InnerRad;
     float OuterRad;
     float Attenuation;
+
+    row_major matrix ViewMatrix;
+    row_major matrix ProjectionMatrix;
 };
 
 StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);

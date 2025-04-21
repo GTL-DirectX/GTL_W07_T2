@@ -27,6 +27,7 @@ public:
     ID3D11RasterizerState* RasterizerSolidBack = nullptr;
     ID3D11RasterizerState* RasterizerSolidFront = nullptr;
     ID3D11RasterizerState* RasterizerWireframeBack = nullptr;
+    ID3D11RasterizerState* RasterizerShadow = nullptr;
 
     ID3D11DepthStencilState* DepthStencilState = nullptr;
     
@@ -43,7 +44,6 @@ public:
 
     void Initialize(HWND hWindow);
     
-    void ChangeRasterizer(EViewModeIndex ViewModeIndex);
     void CreateRTV(ID3D11Texture2D*& OutTexture, ID3D11RenderTargetView*& OutRTV);
     ID3D11Texture2D* CreateTexture2D(const D3D11_TEXTURE2D_DESC& Description, const void* InitialData);
     
@@ -54,8 +54,6 @@ public:
     void SwapBuffer() const;
     
     void Resize(HWND hWindow);
-    
-    ID3D11RasterizerState* GetCurrentRasterizer() const { return CurrentRasterizer; }
 
     /*
     uint32 GetPixelUUID(POINT pt) const;
@@ -73,8 +71,6 @@ private:
     void ReleaseFrameBuffer();
     void ReleaseRasterizerState();
     void ReleaseDepthStencilResources();
-    
-    ID3D11RasterizerState* CurrentRasterizer = nullptr;
 
     const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
     const DXGI_FORMAT BackBufferRTVFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;

@@ -15,6 +15,7 @@
 #include "D3D11RHI/DXDBufferManager.h"
 
 
+class FShadowRenderPass;
 class FPostProcessCompositingPass;
 enum class EResourceType : uint8;
 
@@ -87,6 +88,7 @@ public:
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
 
+    FShadowRenderPass* ShadowRenderPass = nullptr;
     FStaticMeshRenderPass* StaticMeshRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;
     FEditorBillboardRenderPass* EditorBillboardRenderPass = nullptr;

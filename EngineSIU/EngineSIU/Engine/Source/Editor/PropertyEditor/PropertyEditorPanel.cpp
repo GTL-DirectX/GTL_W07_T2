@@ -20,6 +20,10 @@
 #include "GameFramework/Actor.h"
 #include "Engine/AssetManager.h"
 #include "UObject/UObjectIterator.h"
+#include "Runtime/Launch/EngineLoop.h"
+#include "Editor/LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
+#include <UnrealClient.h>
 
 void PropertyEditorPanel::Render()
 {
@@ -317,6 +321,7 @@ void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent*
 
 void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightComponent* LightComponent) const
 {
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     if (ImGui::TreeNodeEx("DirectionalLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen))
@@ -332,6 +337,38 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
         FVector LightDirection = LightComponent->GetDirection();
         FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
 
+        ImGui::Spacing();
+
+        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
+        // shadowmap view
+        ID3D11ShaderResourceView* originalSRV = GEngineLoop.GetLevelEditor()
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
+            ->SRV;
+
+        /*ID3D11Resource* originalResource = nullptr;
+        originalSRV->GetResource(&originalResource);
+
+        ID3D11Texture2D* originalTexture = nullptr;
+        originalResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&originalTexture);
+
+        D3D11_TEXTURE2D_DESC desc = {};
+        originalTexture->GetDesc(&desc);
+        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        desc.Usage = D3D11_USAGE_STAGING;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+
+        ID3D11Texture2D* copiedTexture = nullptr;
+        GEngineLoop.GraphicDevice.Device->CreateTexture2D(&desc, nullptr, &copiedTexture);
+        GEngineLoop.GraphicDevice.DeviceContext->CopyResource(copiedTexture, originalTexture);
+
+        ID3D11ShaderResourceView* copiedSRV = nullptr;
+        GEngineLoop.GraphicDevice.Device->CreateShaderResourceView(copiedTexture, nullptr, &copiedSRV);
+        */
+        ImTextureID texId = (ImTextureID)originalSRV;
+        ImGui::Image(texId, ImVec2(256, 256));
         ImGui::TreePop();
     }
 
@@ -357,6 +394,16 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
             LightComponent->SetRadius(Radius);
         }
 
+        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
+        // shadowmap view
+        auto srv = GEngineLoop.GetLevelEditor()
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetDepthStencil(EDepthType::EDT_ShadowDepth)
+            ->SRV;
+
+        ImTextureID texId = (ImTextureID)srv;
+        ImGui::Image(texId, ImVec2(256, 256));
 
         ImGui::TreePop();
     }
@@ -396,6 +443,19 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
             LightComponent->SetOuterAngle(OuterDegree);
         }
 
+        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
+        // shadowmap view
+        auto srv = GEngineLoop.GetLevelEditor()
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
+            ->SRV;
+
+
+        ImTextureID texId = (ImTextureID)srv;
+
+        ImGui::Image(texId, ImVec2(256, 256));
+
         ImGui::TreePop();
     }
 
@@ -431,7 +491,7 @@ void PropertyEditorPanel::RenderForProjectileMovementComponent(UProjectileMoveme
         if (ImGui::InputFloat3("Velocity", velocity, "%.1f")) {
             ProjectileComp->SetVelocity(FVector(velocity[0], velocity[1], velocity[2]));
         }
-                
+
         ImGui::TreePop();
     }
 

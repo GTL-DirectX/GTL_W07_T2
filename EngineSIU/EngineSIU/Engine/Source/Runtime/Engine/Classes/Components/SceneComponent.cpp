@@ -131,6 +131,13 @@ void USceneComponent::DestroyComponent(bool bPromoteChildren)
     Super::DestroyComponent(bPromoteChildren);
 }
 
+FVector USceneComponent::GetWorldForwardVector() const
+{
+    FVector Forward = FVector(1.f, 0.f, 0.0f);
+    Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
+    return Forward;
+}
+
 FVector USceneComponent::GetForwardVector() const
 {
 	FVector Forward = FVector(1.f, 0.f, 0.0f);
