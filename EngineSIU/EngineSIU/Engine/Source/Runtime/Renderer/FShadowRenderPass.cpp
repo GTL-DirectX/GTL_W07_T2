@@ -17,6 +17,7 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "Types/ShadowTypes.h"
+#include "Runtime/Renderer/RendererHelpers.h"
 
 FShadowRenderPass::FShadowRenderPass()
     : InputLayout(nullptr)
@@ -106,7 +107,15 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
 
-    BufferManager->BindConstantBuffer("FLightInfoBuffer", 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Vertex);
+
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_AmbientLight), EShaderStage::Vertex);
+
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), EShaderStage::Vertex);
+
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_PointLight), EShaderStage::Vertex);
+
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight), EShaderStage::Vertex);
 
     // TODO Slot 임시
     BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Vertex);
@@ -118,7 +127,7 @@ void FShadowRenderPass::UpdateLightIndex(uint32 index) const
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
-    ObjectData.FarPlane = 1000.0f;
+    ObjectData.FarPlane = 200.0f;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }
