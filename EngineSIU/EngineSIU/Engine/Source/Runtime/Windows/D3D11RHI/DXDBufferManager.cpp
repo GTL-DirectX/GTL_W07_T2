@@ -78,18 +78,20 @@ void FDXDBufferManager::BindConstantBuffer(const FString& Key, UINT StartSlot, E
 
 void FDXDBufferManager::BindStructuredBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const
 {
-    if (!StructuredBufferPool.Contains(Key))
+    FDXDStructuredBuffer StructuredBuffer = GetStructuredBuffer(Key);
+
+    if (StructuredBuffer.Buffer == nullptr)
     {
         return;
     }
     
-    FDXDStructuredBuffer StructuredBuffer = StructuredBufferPool[Key];
-    if (StructuredBuffer.Buffer)
+    if (Stage == EShaderStage::Vertex)
     {
-        if (Stage == EShaderStage::Vertex)
-            DXDeviceContext->VSSetShaderResources(StartSlot, 1, &StructuredBuffer.SRV);
-        else if (Stage == EShaderStage::Pixel)
-            DXDeviceContext->PSSetShaderResources(StartSlot, 1, &StructuredBuffer.SRV);
+        DXDeviceContext->VSSetShaderResources(StartSlot, 1, &StructuredBuffer.SRV);
+    }
+    else if (Stage == EShaderStage::Pixel)
+    {
+        DXDeviceContext->PSSetShaderResources(StartSlot, 1, &StructuredBuffer.SRV);
     }
 }
 
@@ -130,6 +132,15 @@ ID3D11Buffer* FDXDBufferManager::GetConstantBuffer(const FString& InName) const
         return ConstantBufferPool[InName];
 
     return nullptr;
+}
+
+FDXDStructuredBuffer FDXDBufferManager::GetStructuredBuffer(const FString& Key) const
+{
+    if (StructuredBufferPool.Contains(Key))
+    {
+        return StructuredBufferPool[Key];
+    }
+    return FDXDStructuredBuffer();
 }
 
 void FDXDBufferManager::CreateQuadBuffer()

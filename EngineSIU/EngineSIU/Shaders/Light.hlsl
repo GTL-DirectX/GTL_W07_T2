@@ -53,10 +53,10 @@ struct FSpotLightInfo
     float Attenuation;
 };
 
-StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t10);
-StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t11);
-StructuredBuffer<FPointLightInfo> PointLights : register(t12);
-StructuredBuffer<FSpotLightInfo> SpotLights : register(t13);
+StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);
+StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t91);
+StructuredBuffer<FPointLightInfo> PointLights : register(t92);
+StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
 
 cbuffer cbLightCount : register(b0)
 {    

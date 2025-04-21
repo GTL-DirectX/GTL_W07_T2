@@ -86,6 +86,7 @@ public:
     FVertexInfo GetTextVertexBuffer(const FWString& InName) const;
     FIndexInfo GetTextIndexBuffer(const FWString& InName) const;
     ID3D11Buffer* GetConstantBuffer(const FString& InName) const;
+    FDXDStructuredBuffer GetStructuredBuffer(const FString& Key) const;
 
     void GetQuadBuffer(FVertexInfo& OutVertexInfo, FIndexInfo& OutIndexInfo);
     void GetTextBuffer(const FWString& Text, FVertexInfo& OutVertexInfo, FIndexInfo& OutIndexInfo);

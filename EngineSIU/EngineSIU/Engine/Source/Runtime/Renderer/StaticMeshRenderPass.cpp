@@ -176,23 +176,23 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
         TEXT("FTextureConstants")
     };
 
-    BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffers(PSBufferKeys, 1, EShaderStage::Pixel);
 
     // Lighting.
     BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Pixel);
 
-    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), 10, EShaderStage::Vertex);
-    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), 10, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_AmbientLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_AmbientLight), EShaderStage::Pixel);
     
-    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), 11, EShaderStage::Vertex);
-    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), 11, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), EShaderStage::Pixel);
     
-    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), 12, EShaderStage::Vertex);
-    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), 12, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_PointLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_PointLight), EShaderStage::Pixel);
     
-    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), 13, EShaderStage::Vertex);
-    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), 13, EShaderStage::Pixel);
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight), EShaderStage::Pixel);
 
     
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
