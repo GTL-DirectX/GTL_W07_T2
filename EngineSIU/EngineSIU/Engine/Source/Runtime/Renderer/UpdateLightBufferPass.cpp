@@ -86,63 +86,6 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
-        // if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
-        // {
-        //     // 씬 바운딩 스피어 정보
-        //     FVector sceneCenter = FVector(0, 0, 0);
-        //     float sphereRadius = 100.0f;
-
-        //     // 라이트 방향 벡터 가져와 단위화 및 반전
-        //     FVector lightDir = Light->GetDirection().GetSafeNormal();
-        //     FVector invDir = -lightDir;
-
-        //     // 교차 지점 계산
-        //     FVector eyePos = sceneCenter + invDir * sphereRadius;
-
-        //     // 타겟 방향
-        //     FVector targetPos = sceneCenter;
-
-        //     FVector upVector = { 0.0f, 0.0f, 1.0f };
-        //     /*FVector worldUp1 = FVector(0, 0, 1);
-        //     FVector worldUp2 = FVector(0, 1, 0);
-        //     FVector forward = (targetPos - eyePos).GetSafeNormal();
-
-        //     float cos1 = FMath::Abs(FVector::DotProduct(forward, worldUp1));
-        //     float cos2 = FMath::Abs(FVector::DotProduct(forward, worldUp2));
-        //     FVector upVector = (cos1 < cos2) ? worldUp1 : worldUp2;*/
-        //     /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999))
-        //     {
-        //         upVector = { 0.0f, 0.0f, 1.0f };
-        //     }*/
-        //     LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
-        //     LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
-
-        //    /* FMatrix RotationMatrix = Light->GetRotationMatrix();
-        //     FMatrix TransposedRotMat = FMatrix::Transpose(RotationMatrix);
-        //     FMatrix TranslationMatrix = Light->GetTranslationMatrix();
-        //     FMatrix ViewMatrix = TransposedRotMat * TranslationMatrix;*/
-
-        //     FMatrix ViewMatrix;
-
-        //     ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, upVector);
-        //     /*ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());*/
-
-        //     /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
-        //         ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f });
-        //     }
-
-        //     else {*/
-        //     /*ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });*/
-        //     //}
-
-        //     // TODO 임시값
-        //     FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(200, 200, 0.1f, 200);
-
-        //     LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
-        //     LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
-
-        //     DirectionalLightsCount++;
-        // }
         DirectionalLightInfo.Add(GetDirectionalLightInfo(Light));
     }
 
@@ -237,10 +180,29 @@ FAmbientLightInfo FUpdateLightBufferPass::GetAmbientLightInfo(const UAmbientLigh
 FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const
 {
     FDirectionalLightInfo LightInfo = {};
+    
+    //씬 바운딩 스피어 정보
+    FVector sceneCenter = FVector(0, 0, 0);
+    float sphereRadius = 100.0f;
+
+    // 라이트 방향 벡터 가져와 단위화 및 반전
+    FVector lightDir = LightComp->GetDirection().GetSafeNormal();
+    FVector invDir = -lightDir;
+
+    // 교차 지점 계산
+    FVector eyePos = sceneCenter + invDir * sphereRadius;
+
+    // 타겟 방향
+    FVector targetPos = sceneCenter;
+
+    FVector upVector = { 0.0f, 0.0f, 1.0f };
 
     LightInfo.LightColor = LightComp->GetLightColor();
     LightInfo.Direction = LightComp->GetDirection();
     LightInfo.Intensity = LightComp->GetIntensity();
+    LightInfo.View = JungleMath::CreateViewMatrix(eyePos, targetPos, upVector);
+    // TODO : 임의값
+    LightInfo.Projection = JungleMath::CreateOrthoProjectionMatrix(200, 200, 0.1f, 200);
 
     return LightInfo;
 }
