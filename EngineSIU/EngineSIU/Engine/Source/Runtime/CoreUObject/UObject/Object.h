@@ -47,6 +47,8 @@ public:
     FName GetFName() const { return NamePrivate; }
     FString GetName() const { return NamePrivate.ToString(); }
 
+    void SetFName(const FString& InName) { NamePrivate = InName; }
+
     uint32 GetUUID() const { return UUID; }
     uint32 GetInternalIndex() const { return InternalIndex; }
 

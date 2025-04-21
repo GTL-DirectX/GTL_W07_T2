@@ -139,6 +139,7 @@ struct FLinearColor
 
     static float LinearToSRGB(float InC);
     FColor ToColorSRGB() const;
+    FColor ToColorRawRGB8() const;
 
     // Operators
     FORCEINLINE FLinearColor operator+(const FLinearColor& Other) const

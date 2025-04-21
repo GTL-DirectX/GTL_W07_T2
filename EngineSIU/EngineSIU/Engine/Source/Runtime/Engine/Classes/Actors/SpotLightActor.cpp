@@ -17,3 +17,14 @@ ASpotLight::ASpotLight()
 ASpotLight::~ASpotLight()
 {
 }
+
+UObject* ASpotLight::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+    
+    NewActor->SpotLightComponent = NewActor->GetComponentByFName<USpotLightComponent>(SpotLightComponent->GetFName());
+    NewActor->BillboardComponent = NewActor->GetComponentByFName<UBillboardComponent>(BillboardComponent->GetFName());
+
+
+    return NewActor;
+}

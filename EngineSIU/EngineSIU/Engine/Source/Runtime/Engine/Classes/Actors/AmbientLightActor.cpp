@@ -19,3 +19,14 @@ AAmbientLight::AAmbientLight()
 AAmbientLight::~AAmbientLight()
 {
 }
+
+UObject* AAmbientLight::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+    
+    NewActor->AmbientLightComponent = NewActor->GetComponentByFName<UAmbientLightComponent>(AmbientLightComponent->GetFName());
+    NewActor->BillboardComponent = NewActor->GetComponentByFName<UBillboardComponent>(BillboardComponent->GetFName());
+
+
+    return NewActor;
+}

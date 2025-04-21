@@ -7,6 +7,8 @@ class ASpotLight :
 public:
     ASpotLight();
     virtual ~ASpotLight();
+    UObject* Duplicate(UObject* InOuter) override;
+    
 protected:
     UPROPERTY
     (USpotLightComponent*, SpotLightComponent, = nullptr);

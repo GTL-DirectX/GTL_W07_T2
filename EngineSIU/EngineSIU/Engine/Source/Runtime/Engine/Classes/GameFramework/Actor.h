@@ -76,6 +76,10 @@ public:
         requires std::derived_from<T, UActorComponent>
     T* GetComponentByClass();
 
+    template<typename T>
+        requires std::derived_from<T, UActorComponent>
+    T* GetComponentByFName(FName InName);
+
     void InitializeComponents();
     void UninitializeComponents();
 
@@ -156,6 +160,22 @@ T* AActor::GetComponentByClass()
         if (T* CastedComponent = Cast<T>(Component))
         {
             return CastedComponent;
+        }
+    }
+    return nullptr;
+}
+
+template <typename T> requires std::derived_from<T, UActorComponent>
+T* AActor::GetComponentByFName(FName InName)
+{
+    for (UActorComponent* Component : OwnedComponents)
+    {
+        if (T* CastedComponent = Cast<T>(Component))
+        {
+            if (CastedComponent->GetFName() == InName)
+            {
+                return CastedComponent;
+            }
         }
     }
     return nullptr;

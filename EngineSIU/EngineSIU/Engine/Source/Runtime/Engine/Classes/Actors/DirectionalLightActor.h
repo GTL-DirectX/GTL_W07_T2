@@ -8,6 +8,8 @@ public:
     ADirectionalLight();
     virtual ~ADirectionalLight();
 
+    UObject* Duplicate(UObject* InOuter) override;
+    
 public:
     void SetIntensity(float Intensity);
 
