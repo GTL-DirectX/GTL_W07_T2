@@ -305,7 +305,7 @@ HRESULT FDXDBufferManager::CreateStructuredBuffer(const FString& InKeyName, cons
     UINT ElementStride = sizeof(T);
 
     D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
     bufferDesc.ByteWidth = ElementStride * ElementCount;
     bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
     bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;

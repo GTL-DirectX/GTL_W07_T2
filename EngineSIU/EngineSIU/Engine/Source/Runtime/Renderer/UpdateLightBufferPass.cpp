@@ -36,6 +36,8 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
 
 void FUpdateLightBufferPass::PrepareRender()
 {
+    // World에서 모든 LightComponent를 가져와 배열 채우기.
+    // 여기서 Light를 Info로 안 바꾸는 이유는 추후 Culling을 위해서.
     for (const auto iter : TObjectRange<ULightComponentBase>())
     {
         if (iter->GetWorld() == GEngine->ActiveWorld)
@@ -52,12 +54,10 @@ void FUpdateLightBufferPass::PrepareRender()
             {
                 DirectionalLights.Add(DirectionalLight);
             }
-            // Begin Test
             else if (UAmbientLightComponent* AmbientLight = Cast<UAmbientLightComponent>(iter))
             {
                 AmbientLights.Add(AmbientLight);
             }
-            // End Test
         }
     }
 }
@@ -78,61 +78,44 @@ void FUpdateLightBufferPass::ClearRenderArr()
 
 void FUpdateLightBufferPass::UpdateLightBuffer() const
 {
-    FLightInfoBuffer LightBufferData = {};
-
-    int DirectionalLightsCount=0;
-    int PointLightsCount=0;
-    int SpotLightsCount=0;
-    int AmbientLightsCount=0;
+    TArray<FDirectionalLightInfo> DirectionalLightInfo = {};
+    TArray<FAmbientLightInfo> AmbientLightInfo = {};
+    TArray<FPointLightInfo> PointLightInfo = {};
+    TArray<FSpotLightInfo> SpotLightInfo = {};
     
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
-        if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
-        {
-            LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
-            LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
-            DirectionalLightsCount++;
-        }
+        DirectionalLightInfo.Add(GetDirectionalLightInfo(Light));
     }
 
     for (UAmbientLightComponent* Light : AmbientLights)
     {
-        if (AmbientLightsCount < MAX_DIRECTIONAL_LIGHT)
-        {
-            LightBufferData.Ambient[AmbientLightsCount] = GetAmbientLightInfo(Light);
-            LightBufferData.Ambient[AmbientLightsCount].AmbientColor = Light->GetLightColor();
-            AmbientLightsCount++;
-        }
+        AmbientLightInfo.Add(GetAmbientLightInfo(Light));
     }
     
     for (USpotLightComponent* Light : SpotLights)
     {
-        if (SpotLightsCount < MAX_SPOT_LIGHT)
-        {
-            LightBufferData.SpotLights[SpotLightsCount] = GetSpotLightInfo(Light);
-            LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
-            LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
-            SpotLightsCount++;
-        }
+        SpotLightInfo.Add(GetSpotLightInfo(Light));
     }
 
     for (UPointLightComponent* Light : PointLights)
     {
-        if (PointLightsCount < MAX_POINT_LIGHT)
-        {
-            LightBufferData.PointLights[PointLightsCount] = GetPointLightInfo(Light);
-            LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
-            PointLightsCount++;
-        }
+        PointLightInfo.Add(GetPointLightInfo(Light));
     }
-    
-    LightBufferData.DirectionalLightsCount = DirectionalLightsCount;
-    LightBufferData.PointLightsCount = PointLightsCount;
-    LightBufferData.SpotLightsCount = SpotLightsCount;
-    LightBufferData.AmbientLightsCount = AmbientLightsCount;
 
-    BufferManager->UpdateConstantBuffer(TEXT("FLightInfoBuffer"), LightBufferData);
+    // TODO: Light 갯수 변화에 따라 동적으로 내용 변경 or 버퍼 재생성.
+    BufferManager->CreateStructuredBuffer("FDirectionalLightInfo", DirectionalLightInfo, true);
+    BufferManager->CreateStructuredBuffer("FAmbientLightInfo", AmbientLightInfo, true);
+    BufferManager->CreateStructuredBuffer("FPointLightInfo", PointLightInfo, true);
+    BufferManager->CreateStructuredBuffer("FSpotLightInfo", SpotLightInfo, true);
+
+    FLightCount LightCount = {};
+    LightCount.DirectionalLightsCount = DirectionalLightInfo.Num();
+    LightCount.AmbientLightsCount = AmbientLightInfo.Num();
+    LightCount.PointLightsCount = PointLightInfo.Num();
+    LightCount.SpotLightsCount = SpotLightInfo.Num();
     
+    BufferManager->UpdateConstantBuffer("FLightCount", LightCount);
 }
 
 FAmbientLightInfo FUpdateLightBufferPass::GetAmbientLightInfo(const UAmbientLightComponent* LightComp) const

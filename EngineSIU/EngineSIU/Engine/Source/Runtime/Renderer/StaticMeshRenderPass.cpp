@@ -170,7 +170,6 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     TArray<FString> PSBufferKeys = {
-        TEXT("FLightInfoBuffer"),
         TEXT("FMaterialConstants"),
         TEXT("FLitUnlitConstants"),
         TEXT("FSubMeshConstants"),
@@ -179,7 +178,23 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
 
     BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
 
-    BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
+    // Lighting.
+    BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Pixel);
+
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), 10, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), 10, EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), 11, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), 11, EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), 12, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), 12, EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), 13, EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), 13, EShaderStage::Pixel);
+
+    
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
 
 
