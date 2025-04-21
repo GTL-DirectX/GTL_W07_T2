@@ -36,7 +36,7 @@ private:
     FVector2D MousePinPosition;
 
     /** 좌클릭시 커서와 선택된 Actor와의 거리 차 */
-    FVector TargetDiff;
+    FVector OnMouseDownRayDiffOffset;
 
     bool bMultiViewportMode;
     

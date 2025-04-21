@@ -1,25 +1,23 @@
 #pragma once
-#include "GameFramework/Actor.h"
+#include "Math/Vector.h"
+#include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/ObjectTypes.h"
 
 
 class UGizmoBaseComponent;
-class UGizmoArrowComponent;
 class USceneComponent;
-class UPrimitiveComponent;
 class FEditorViewportClient;
 class UStaticMeshComponent;
 
-class AEditorPlayer : public AActor
+class FEditorPlayer : public UObject
 {
-    DECLARE_CLASS(AEditorPlayer, AActor)
+    DECLARE_CLASS(FEditorPlayer, UObject)
 
-    AEditorPlayer() = default;
+public:
+    FEditorPlayer() = default;
 
-    virtual void Tick(float DeltaTime) override;
-
-    void Input();
+    void Initialize();
     bool PickGizmo(FVector& RayOrigin, FEditorViewportClient* InActiveViewport);
     void ProcessGizmoIntersection(UStaticMeshComponent* Component, const FVector& PickPosition, FEditorViewportClient* InActiveViewport, bool& bIsPickedGizmo);
     void PickActor(const FVector& pickPosition);
@@ -30,12 +28,10 @@ private:
     int RayIntersectsObject(const FVector& PickPosition, USceneComponent* Component, float& HitDistance, int& IntersectCount);
     void ScreenToViewSpace(int32 ScreenX, int32 ScreenY, std::shared_ptr<FEditorViewportClient> ActiveViewport, FVector& RayOrigin);
     void PickedObjControl();
-    void ControlRotation(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY);
-    void ControlScale(USceneComponent* Component, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY);
+    void ControlRotation(USceneComponent* TargetComponent, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY);
+    void ControlScale(USceneComponent* TargetComponent, UGizmoBaseComponent* Gizmo, float DeltaX, float DeltaY);
 
-    bool bLeftMouseDown = false;
-
-    POINT m_LastMousePos;
+    POINT LastMousePos;
     EControlMode ControlMode = CM_TRANSLATION;
     ECoordMode CoordMode = CDM_WORLD;
 

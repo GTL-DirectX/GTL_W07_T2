@@ -183,7 +183,7 @@ void FEditorViewportClient::InputKey(const FKeyEvent& InKeyEvent)
     }
     else
     {
-        AEditorPlayer* EdPlayer = CastChecked<UEditorEngine>(GEngine)->GetEditorPlayer();
+        FEditorPlayer* EdPlayer = CastChecked<UEditorEngine>(GEngine)->GetEditorPlayer();
         switch (InKeyEvent.GetCharacter())
         {
         case 'W':

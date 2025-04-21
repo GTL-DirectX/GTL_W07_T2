@@ -16,6 +16,7 @@
 
 #include "EngineLoop.h"
 #include "UnrealClient.h"
+#include "GameFramework/Actor.h"
 
 #include "World/World.h"
 
@@ -157,9 +158,24 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     {
         UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
         
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+        AActor* SelectedActor = Engine->GetSelectedActor();
+
+        USceneComponent* TargetComponent = nullptr;
+    
+        if (SelectedComponent != nullptr)
+        {
+            TargetComponent = SelectedComponent;
+        }
+        else if (SelectedActor != nullptr)
+        {
+            TargetComponent = SelectedActor->GetRootComponent();
+        }
+        
+        const bool bIsSelected = (Engine && TargetComponent == BillboardComp);
+        
         FMatrix Model = BillboardComp->CreateBillboardMatrix();
         FVector4 UUIDColor = BillboardComp->EncodeUUID() / 255.0f;
-        bool bIsSelected = (Engine && Engine->GetSelectedActor() == BillboardComp->GetOwner());
         UpdateObjectConstant(Model, UUIDColor, bIsSelected);
 
         if (UParticleSubUVComponent* SubUVParticle = Cast<UParticleSubUVComponent>(BillboardComp))

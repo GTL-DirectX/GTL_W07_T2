@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include "Serialization/Archive.h"
 
-struct FVector;
-struct FVector4;
 struct FRotator;
 struct FQuat;
 
@@ -37,6 +35,10 @@ public:
     static FVector4 TransformVector(const FVector4& v, const FMatrix& m);
     static FMatrix CreateTranslationMatrix(const FVector& position);
 
+    FVector ExtractLocation();
+    FRotator ExtractRotation();
+    FVector ExtractScale();
+    
     FVector4 TransformFVector4(const FVector4& vector) const;
     FVector TransformPosition(const FVector& vector) const;
 

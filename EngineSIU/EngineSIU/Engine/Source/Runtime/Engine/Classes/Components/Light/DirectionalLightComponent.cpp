@@ -38,6 +38,6 @@ void UDirectionalLightComponent::SetProperties(const TMap<FString, FString>& InP
 FVector UDirectionalLightComponent::GetDirection() const 
 {
     FRotator rotator = GetWorldRotation();
-    FVector WorldDown= rotator.ToQuaternion().RotateVector(-GetUpVector());
+    FVector WorldDown= rotator.ToQuaternion().RotateVector(-GetRelativeUpVector());
     return WorldDown;  
 }

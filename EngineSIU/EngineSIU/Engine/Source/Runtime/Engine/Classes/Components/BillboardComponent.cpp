@@ -7,6 +7,7 @@
 #include "Math/MathUtility.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "EngineLoop.h"
+#include "UObject/Casts.h"
 
 UBillboardComponent::UBillboardComponent()
 {

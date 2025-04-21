@@ -5,6 +5,7 @@
 #include "Engine/EditorEngine.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Engine/Engine.h"
+#include "GameFramework/Actor.h"
 #include "UnrealEd/SceneManager.h"
 
 class UEditorEngine;

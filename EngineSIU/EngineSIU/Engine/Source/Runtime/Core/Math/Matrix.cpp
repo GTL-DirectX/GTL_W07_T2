@@ -173,9 +173,9 @@ FMatrix FMatrix::Inverse(const FMatrix& Mat)
 
 FMatrix FMatrix::CreateRotationMatrix(float roll, float pitch, float yaw)
 {
-    float radRoll = roll * (PI / 180.0f);
-    float radPitch = pitch * (PI / 180.0f);
-    float radYaw = yaw * (PI / 180.0f);
+    float radRoll = FMath::DegreesToRadians(roll);
+    float radPitch = FMath::DegreesToRadians(pitch);
+    float radYaw = FMath::DegreesToRadians(yaw);
 
     float cosRoll = FMath::Cos(radRoll), sinRoll = FMath::Sin(radRoll);
     float cosPitch = FMath::Cos(radPitch), sinPitch = FMath::Sin(radPitch);
@@ -228,6 +228,67 @@ FMatrix FMatrix::CreateTranslationMatrix(const FVector& position)
     translationMatrix.M[3][1] = position.Y;
     translationMatrix.M[3][2] = position.Z;
     return translationMatrix;
+}
+
+FVector FMatrix::ExtractLocation()
+{
+    FVector Translation;
+    Translation.X = M[3][0];
+    Translation.Y = M[3][1];
+    Translation.Z = M[3][2];
+
+    return Translation;
+}
+
+FRotator FMatrix::ExtractRotation()
+{
+    FRotator Result;
+
+    FVector Scale = ExtractScale();
+    FMatrix Tmp = FMatrix::Identity;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        Tmp.M[0][i] = M[0][i] / Scale.X;
+        Tmp.M[1][i] = M[1][i] / Scale.Y;
+        Tmp.M[2][i] = M[2][i] / Scale.Z;
+    }
+
+    // === Step 3: Extract rotation from pure rotation matrix ===
+    float angle = sqrt(Tmp.M[0][0] * Tmp.M[0][0] + Tmp.M[1][0] * Tmp.M[1][0]);
+    if (angle > 1e-6)
+    {
+        Result.Roll = atan2(M[2][1], M[2][2]);
+        Result.Pitch = atan2(-M[2][0], angle);
+        Result.Yaw = atan2(M[1][0], M[0][0]);
+    }
+    else
+    {
+        Result.Roll = atan2(-M[1][2], M[1][1]);
+        Result.Pitch = atan2(-M[2][0], angle);
+        Result.Yaw = 0;
+    }
+
+    // 라디안 → 도
+    Result.Roll  = FMath::RadiansToDegrees(Result.Roll);
+    Result.Pitch = FMath::RadiansToDegrees(Result.Pitch);
+    Result.Yaw   = FMath::RadiansToDegrees(Result.Yaw);
+
+    return Result;
+}
+
+FVector FMatrix::ExtractScale()
+{
+    FVector Forward = FVector(M[0][0], M[0][1], M[0][2]);
+    FVector Right = FVector(M[1][0], M[1][1], M[1][2]);
+    FVector Up = FVector(M[2][0], M[2][1], M[2][2]);
+    
+    FVector Scale;
+    Scale.X = Forward.Length();
+    Scale.Y = Right.Length();
+    Scale.Z = Up.Length();
+
+    return Scale;
 }
 
 FVector FMatrix::TransformVector(const FVector& v, const FMatrix& m)

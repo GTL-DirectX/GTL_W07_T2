@@ -49,8 +49,8 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
     }
     if (GetOwner())
     {
-        FVector NewLocation = GetOwner()->GetRootComponent()->GetRelativeLocation() + Velocity * DeltaTime;
-        GetOwner()->GetRootComponent()->SetRelativeLocation(NewLocation);
+        FVector NewLocation = GetOwner()->GetActorLocation() + Velocity * DeltaTime;
+        GetOwner()->SetActorLocation(NewLocation);
     }
 
     //ToDo : PIE모드 진입 후에도 PickedActor를 유지했을 때 예외발생할 수 있음.

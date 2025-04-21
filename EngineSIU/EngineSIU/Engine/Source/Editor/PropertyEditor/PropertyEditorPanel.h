@@ -11,7 +11,7 @@ class UAmbientLightComponent;
 class UProjectileMovementComponent;
 class UTextComponent;
 class UHeightFogComponent;
-class AEditorPlayer;
+class FEditorPlayer;
 class USceneComponent;
 class UStaticMeshComponent;
 
@@ -46,7 +46,7 @@ private:
     void RGBToHSV(float r, float g, float b, float& h, float& s, float& v) const;
     void HSVToRGB(float h, float s, float v, float& r, float& g, float& b) const;
 
-    void RenderForSceneComponent(USceneComponent* SceneComponent, AEditorPlayer* Player) const;
+    void RenderForSceneComponent(USceneComponent* SceneComponent, FEditorPlayer* Player) const;
     void RenderForActor(AActor* SelectedActor, USceneComponent* TargetComponent) const;
 
     /* Static Mesh Settings */

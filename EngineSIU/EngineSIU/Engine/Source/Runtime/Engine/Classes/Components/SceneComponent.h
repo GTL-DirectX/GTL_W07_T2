@@ -22,14 +22,6 @@ public:
     virtual int CheckRayIntersection(FVector& InRayOrigin, FVector& InRayDirection, float& pfNearHitDistance);
     virtual void DestroyComponent(bool bPromoteChildren = false) override;
 
-    virtual FVector GetForwardVector() const;
-    virtual FVector GetRightVector() const;
-    virtual FVector GetUpVector() const;
-    
-    void AddLocation(FVector InAddValue);
-    void AddRotation(FVector InAddValue);
-    void AddScale(FVector InAddValue);
-
     USceneComponent* GetAttachParent() const { return AttachParent; }
     const TArray<USceneComponent*>& GetAttachChildren() const { return AttachChildren; }
 
@@ -38,9 +30,21 @@ public:
     void DetachFromComponent(USceneComponent* Target);
 
 public:
+    virtual FVector GetRelativeForwardVector() const;
+    virtual FVector GetRelativeRightVector() const;
+    virtual FVector GetRelativeUpVector() const;
+    
+    void AddRelativeLocation(FVector InAddValue);
+    void AddRelativeRotation(FVector InAddValue);
+    void AddRelativeScale(FVector InAddValue);
+    
     void SetRelativeLocation(FVector InNewLocation) { RelativeLocation = InNewLocation; }
     void SetRelativeRotation(FRotator InNewRotation) { RelativeRotation = InNewRotation; }
     void SetRelativeScale3D(FVector NewScale) { RelativeScale3D = NewScale; }
+
+    virtual FVector GetWorldForwardVector() const;
+    virtual FVector GetWorldRightVector() const;
+    virtual FVector GetWorldUpVector() const;
     
     FVector GetRelativeLocation() const { return RelativeLocation; }
     FRotator GetRelativeRotation() const { return RelativeRotation; }
@@ -50,6 +54,10 @@ public:
     FRotator GetWorldRotation() const;
     FVector GetWorldScale3D() const;
 
+    void SetWorldLocation(FVector InNewLocation);
+    void SetWorldRotation(FRotator InNewRotation);
+    void SetWorldScale3D(FVector InNewScale);
+        
     FMatrix GetScaleMatrix() const;
     FMatrix GetRotationMatrix() const;
     FMatrix GetTranslationMatrix() const;

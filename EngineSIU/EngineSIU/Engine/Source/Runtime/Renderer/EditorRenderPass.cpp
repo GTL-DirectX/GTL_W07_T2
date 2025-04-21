@@ -3,10 +3,8 @@
 #include "EngineLoop.h" // GEngineLoop
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h" // GEngine
 #include "Engine/Source/Runtime/CoreUObject/UObject/Casts.h"
-#include "Engine/Source/Runtime/Engine/Classes/Engine/EditorEngine.h"
 #include <D3D11RHI/DXDShaderManager.h>
 
-#include <d3dcompiler.h>
 
 #include "UnrealClient.h"
 #include "Engine/Source/Runtime/Engine/World/World.h"
@@ -14,7 +12,7 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
-#include "Engine/Classes/Actors/Player.h"
+#include "Engine/Classes/GameFramework/Actor.h"
 #include "Engine/Classes/Components/Light/LightComponentBase.h"
 #include "Engine/Classes/Components/Light/DirectionalLightComponent.h"
 #include "Engine/Classes/Components/Light/SpotLightComponent.h"

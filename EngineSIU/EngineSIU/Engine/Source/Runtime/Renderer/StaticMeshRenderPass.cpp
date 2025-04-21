@@ -20,6 +20,7 @@
 
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "Engine/EditorEngine.h"
+#include "GameFramework/Actor.h"
 
 #include "PropertyEditor/ShowFlags.h"
 

@@ -54,7 +54,7 @@ void PropertyEditorPanel::Render()
     /* Render Start */
     ImGui::Begin("Detail", nullptr, PanelFlags);
 
-    AEditorPlayer* Player = Engine->GetEditorPlayer();
+    FEditorPlayer* Player = Engine->GetEditorPlayer();
     AActor* SelectedActor = Engine->GetSelectedActor();
     USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
     USceneComponent* TargetComponent = nullptr;
@@ -176,16 +176,31 @@ void PropertyEditorPanel::HSVToRGB(float h, float s, float v, float& r, float& g
     r += m;  g += m;  b += m;
 }
 
-void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponent, AEditorPlayer* Player) const
+void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponent, FEditorPlayer* Player) const
 {
     ImGui::SetItemDefaultFocus();
     // TreeNode 배경색을 변경 (기본 상태)
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
     if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
     {
-        FVector Location = SceneComponent->GetRelativeLocation();
-        FRotator Rotation = SceneComponent->GetRelativeRotation();
-        FVector Scale = SceneComponent->GetRelativeScale3D();
+        auto CoordMode = Player->GetCoordMode();
+
+        FVector Location;
+        FRotator Rotation;
+        FVector Scale;
+
+        if (CoordMode == CDM_WORLD)
+        {
+            Location = SceneComponent->GetWorldLocation();
+            Rotation = SceneComponent->GetWorldRotation();
+            Scale = SceneComponent->GetWorldScale3D();
+        }
+        else if (CoordMode == CDM_LOCAL)
+        {
+            Location = SceneComponent->GetRelativeLocation();
+            Rotation = SceneComponent->GetRelativeRotation();
+            Scale = SceneComponent->GetRelativeScale3D();
+        }
 
         FImGuiWidget::DrawVec3Control("Location", Location, 0, 85);
         ImGui::Spacing();
@@ -196,15 +211,29 @@ void PropertyEditorPanel::RenderForSceneComponent(USceneComponent* SceneComponen
         FImGuiWidget::DrawVec3Control("Scale", Scale, 0, 85);
         ImGui::Spacing();
 
-        SceneComponent->SetRelativeLocation(Location);
-        SceneComponent->SetRelativeRotation(Rotation);
-        SceneComponent->SetRelativeScale3D(Scale);
+        if (CoordMode == CDM_WORLD)
+        {
+            SceneComponent->SetWorldLocation(Location);
+            SceneComponent->SetWorldRotation(Rotation);
+            SceneComponent->SetWorldScale3D(Scale);
+        }
+        else if (CoordMode == CDM_LOCAL)
+        {
+            SceneComponent->SetRelativeLocation(Location);
+            SceneComponent->SetRelativeRotation(Rotation);
+            SceneComponent->SetRelativeScale3D(Scale);
+        }
+        
 
         std::string CoordiButtonLabel;
-        if (Player->GetCoordMode() == ECoordMode::CDM_WORLD)
+        if (CoordMode == ECoordMode::CDM_WORLD)
+        {
             CoordiButtonLabel = "World";
-        else if (Player->GetCoordMode() == ECoordMode::CDM_LOCAL)
+        }
+        else if (CoordMode == ECoordMode::CDM_LOCAL)
+        {
             CoordiButtonLabel = "Local";
+        }
 
         if (ImGui::Button(CoordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
         {
@@ -220,7 +249,7 @@ void PropertyEditorPanel::RenderForActor(AActor* SelectedActor, USceneComponent*
     if (ImGui::Button("Duplicate"))
     {
         UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
-        AActor* NewActor = Engine->ActiveWorld->DuplicateActor(Engine->GetSelectedActor());
+        AActor* NewActor = Engine->ActiveWorld->DuplicateActor(TargetComponent->GetOwner());
         Engine->SelectActor(NewActor);
         Engine->DeSelectComponent(Engine->GetSelectedComponent());
     }
