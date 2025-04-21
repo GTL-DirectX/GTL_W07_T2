@@ -24,8 +24,8 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     if (DirectionalLightsCount > LightIndex)
     {
         uint TargetIndex = LightIndex;
-        output.Pos = mul(output.Pos, Directional[TargetIndex].ViewMatrix);
-        output.Pos = mul(output.Pos, Directional[TargetIndex].ProjectionMatrix);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ViewMatrix);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ProjectionMatrix);
     }
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
@@ -38,7 +38,6 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
         uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ViewMatrix);
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ProjectionMatrix);
-        //output.Pos.r = 0;
     }
     
     return output;
@@ -66,5 +65,6 @@ float4 mainPS(VS_OUTPUT Input) : SV_TARGET
     //float DepthLinearized = (NearPlane * FarPlane) / (FarPlane - DepthNDC * (FarPlane - NearPlane));
     //float DepthNormalized = saturate((DepthLinearized - NearPlane) / (FarPlane - NearPlane));
     DepthNormalized = DepthNDC;
+    
     return float4(DepthNormalized, DepthNormalized, DepthNormalized, 1.0);
 }

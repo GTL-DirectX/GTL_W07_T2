@@ -112,9 +112,6 @@ void FStaticMeshRenderPass::CreateSampler()
     comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
     comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    //comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    //comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    //comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     comparisonSamplerDesc.BorderColor[0] = 1.0f;
     comparisonSamplerDesc.BorderColor[1] = 1.0f;
     comparisonSamplerDesc.BorderColor[2] = 1.0f;
@@ -194,16 +191,31 @@ void FStaticMeshRenderPass::PrepareRenderState(const std::shared_ptr<FEditorView
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     TArray<FString> PSBufferKeys = {
-        TEXT("FLightInfoBuffer"),
         TEXT("FMaterialConstants"),
         TEXT("FLitUnlitConstants"),
         TEXT("FSubMeshConstants"),
         TEXT("FTextureConstants")
     };
 
-    BufferManager->BindConstantBuffers(PSBufferKeys, 0, EShaderStage::Pixel);
+    BufferManager->BindConstantBuffers(PSBufferKeys, 1, EShaderStage::Pixel);
 
-    BufferManager->BindConstantBuffer(TEXT("FLightInfoBuffer"), 0, EShaderStage::Vertex);
+    // Lighting.
+    BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Vertex);
+    BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Pixel);
+
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_AmbientLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FAmbientLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_AmbientLight), EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FDirectionalLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight), EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_PointLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FPointLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_PointLight), EShaderStage::Pixel);
+    
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight), EShaderStage::Vertex);
+    BufferManager->BindStructuredBuffer(TEXT("FSpotLightInfo"), static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight), EShaderStage::Pixel);
+
+    
     BufferManager->BindConstantBuffer(TEXT("FMaterialConstants"), 1, EShaderStage::Vertex);
 
 

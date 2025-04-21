@@ -14,8 +14,6 @@ cbuffer VSConstants : register(b1)
 
 float4 mainPS(PS_INPUT Input) : SV_TARGET
 {
-    //return float4(Input.Position.z.xxx, 1);
-    
     float DepthRaw = Input.Position.z;
 
     float DepthNDC = DepthRaw * 2.0 - 1.0;

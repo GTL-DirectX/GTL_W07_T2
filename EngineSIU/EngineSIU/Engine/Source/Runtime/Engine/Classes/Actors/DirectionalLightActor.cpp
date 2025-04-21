@@ -18,6 +18,16 @@ ADirectionalLight::~ADirectionalLight()
 {
 }
 
+UObject* ADirectionalLight::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+    
+    NewActor->DirectionalLightComponent = NewActor->GetComponentByFName<UDirectionalLightComponent>(DirectionalLightComponent->GetFName());
+    NewActor->BillboardComponent = NewActor->GetComponentByFName<UBillboardComponent>(BillboardComponent->GetFName());
+
+    return NewActor;
+}
+
 void ADirectionalLight::SetIntensity(float Intensity)
 {
     if (DirectionalLightComponent)

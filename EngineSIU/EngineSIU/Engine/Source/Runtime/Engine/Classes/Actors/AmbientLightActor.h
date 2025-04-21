@@ -6,7 +6,8 @@ class AAmbientLight : public ALight
 public:
     AAmbientLight();
     virtual ~AAmbientLight();
-
+    UObject* Duplicate(UObject* InOuter) override;
+    
 protected:
     UPROPERTY
     (UAmbientLightComponent*, AmbientLightComponent, = nullptr);

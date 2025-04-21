@@ -11,6 +11,9 @@ class AFireballActor : public AActor
 public:
     AFireballActor();
     virtual ~AFireballActor();
+    
+    UObject* Duplicate(UObject* InOuter) override;
+    
     virtual void BeginPlay() override;
 
 protected:

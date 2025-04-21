@@ -9,7 +9,6 @@ struct FSpotLightInfo;
 struct FPointLightInfo;
 
 class FDXDShaderManager;
-class UWorld;
 class FEditorViewportClient;
 
 class UAmbientLightComponent;

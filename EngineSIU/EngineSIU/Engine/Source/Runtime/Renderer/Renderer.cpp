@@ -125,8 +125,8 @@ void FRenderer::CreateConstantBuffers()
     UINT FogConstantBufferSize = sizeof(FFogConstants);
     BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, FogConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT LightInfoBufferSize = sizeof(FLightInfoBuffer);
-    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT LightInfoBufferSize = sizeof(FLightCount);
+    BufferManager->CreateBufferGeneric<FLightCount>("FLightCount", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     UINT ShadowLightConstantBufferSize = sizeof(FShadowLightConstants);
     BufferManager->CreateBufferGeneric<FShadowLightConstants>("FShadowLightConstants", nullptr, ShadowLightConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);

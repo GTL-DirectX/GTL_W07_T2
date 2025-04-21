@@ -36,7 +36,7 @@ cbuffer TextureConstants : register(b4)
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
-    float bias = 0.5f;
+    float bias = 0.001f;
 
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
@@ -46,8 +46,8 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
     {
         uint TargetIndex = LightIndex;
 
-        LightViewMatrix = Directional[TargetIndex].ViewMatrix;
-        LightProjectionMatrix = Directional[TargetIndex].ProjectionMatrix;
+        LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
+        LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
     }
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
@@ -100,6 +100,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
     }
     
+    
     // Lighting
     if (IsLit)
     {
@@ -119,7 +120,8 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
-
+    
     FinalColor *= ShadowMapLight;
+    
     return FinalColor;
 }

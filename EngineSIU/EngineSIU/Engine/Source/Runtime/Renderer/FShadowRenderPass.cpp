@@ -97,7 +97,7 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
     ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, EResourceType::ERT_ShadowMapVisualization);
-
+    
     /***********************임시 추후 수정 필요/***********************/
     ID3D11DepthStencilView* DepthStencilView = ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV;
 

@@ -1,4 +1,4 @@
-#include "DirectionalLightComponent.h"
+ #include "DirectionalLightComponent.h"
 
 #include "Math/Rotator.h"
 #include "Math/Quat.h"

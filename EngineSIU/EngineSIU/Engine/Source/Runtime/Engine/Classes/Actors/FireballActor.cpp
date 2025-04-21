@@ -10,10 +10,8 @@
 AFireballActor::AFireballActor()
 {
     FManagerOBJ::CreateStaticMesh("Contents/Sphere.obj");
-
-
-    SphereComp = AddComponent<USphereComp>("USphereComp_0");
     
+    SphereComp = AddComponent<USphereComp>("USphereComp_0");
     SphereComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Contents/Sphere.obj"));
   
     PointLightComponent = AddComponent<UPointLightComponent>("UPointLightComponent_0");
@@ -32,6 +30,17 @@ AFireballActor::AFireballActor()
 
 AFireballActor::~AFireballActor()
 {
+}
+
+UObject* AFireballActor::Duplicate(UObject* InOuter)
+{
+    ThisClass* NewActor = Cast<ThisClass>(Super::Duplicate(InOuter));
+
+    NewActor->SphereComp = NewActor->GetComponentByFName<USphereComp>(SphereComp->GetFName());
+    NewActor->PointLightComponent = NewActor->GetComponentByFName<UPointLightComponent>(PointLightComponent->GetFName());
+    NewActor->ProjectileMovementComponent = NewActor->GetComponentByFName<UProjectileMovementComponent>(ProjectileMovementComponent->GetFName());
+
+    return NewActor;
 }
 
 void AFireballActor::BeginPlay()

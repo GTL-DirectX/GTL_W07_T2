@@ -49,6 +49,16 @@ FColor FLinearColor::ToColorSRGB() const
         );
 }
 
+FColor FLinearColor::ToColorRawRGB8() const
+{
+    return FColor(
+    static_cast<uint8>(FMath::Clamp(static_cast<int32>(R * 255.0f + 0.5f), 0, 255)),
+    static_cast<uint8>(FMath::Clamp(static_cast<int32>(G * 255.0f + 0.5f), 0, 255)),
+    static_cast<uint8>(FMath::Clamp(static_cast<int32>(B * 255.0f + 0.5f), 0, 255)),
+    static_cast<uint8>(FMath::Clamp(static_cast<int32>(A * 255.0f + 0.5f), 0, 255))
+    );
+}
+
 FString FLinearColor::ToString() const
 {
     return FString::Printf(TEXT("R=%3.3f G=%3.3f B=%3.3f A=%3.3f"), R, G, B, A);
