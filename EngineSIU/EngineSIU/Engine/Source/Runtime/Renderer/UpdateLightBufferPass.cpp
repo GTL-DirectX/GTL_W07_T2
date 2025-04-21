@@ -92,7 +92,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
         {
             // 씬 바운딩 스피어 정보
             FVector sceneCenter = FVector(0, 0, 0);
-            float sphereRadius = 100;
+            float sphereRadius = 100.0f;
 
             // 라이트 방향 벡터 가져와 단위화 및 반전
             FVector lightDir = Light->GetDirection().GetSafeNormal();
@@ -104,9 +104,18 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             // 타겟 방향
             FVector targetPos = sceneCenter;
 
-            FVector upVector = { 1.0f, 0.0f, 0.0f };
+            FVector upVector = { 0.0f, 0.0f, 1.0f };
+            /*FVector worldUp1 = FVector(0, 0, 1);
+            FVector worldUp2 = FVector(0, 1, 0);
+            FVector forward = (targetPos - eyePos).GetSafeNormal();
 
-            
+            float cos1 = FMath::Abs(FVector::DotProduct(forward, worldUp1));
+            float cos2 = FMath::Abs(FVector::DotProduct(forward, worldUp2));
+            FVector upVector = (cos1 < cos2) ? worldUp1 : worldUp2;*/
+            /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999))
+            {
+                upVector = { 0.0f, 0.0f, 1.0f };
+            }*/
             LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
 
@@ -129,7 +138,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             //}
             
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 100);
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(200, 200, 0.1f, 200);
             
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;

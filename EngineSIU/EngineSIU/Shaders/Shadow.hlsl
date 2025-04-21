@@ -50,7 +50,7 @@ float4 mainPS(VS_OUTPUT Input) : SV_TARGET
     
     float NearPlane = 0.01;
     
-    float FarPlane = 100;
+    float FarPlane = 200;
     
     float DepthRaw = Input.Pos.z / Input.Pos.w;
 
