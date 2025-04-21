@@ -53,13 +53,13 @@ struct FSpotLightInfo
     float Attenuation;
 };
 
-cbuffer Lighting : register(b0)
-{
-    FAmbientLightInfo Ambient[MAX_AMBIENT_LIGHT];
-    FDirectionalLightInfo Directional[MAX_DIRECTIONAL_LIGHT];
-    FPointLightInfo PointLights[MAX_POINT_LIGHT];
-    FSpotLightInfo SpotLights[MAX_SPOT_LIGHT];
-    
+StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);
+StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t91);
+StructuredBuffer<FPointLightInfo> PointLights : register(t92);
+StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
+
+cbuffer cbLightCount : register(b0)
+{    
     int DirectionalLightsCount;
     int PointLightsCount;
     int SpotLightsCount;
@@ -166,7 +166,7 @@ float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
 
 float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor)
 {
-    FDirectionalLightInfo LightInfo = Directional[nIndex];
+    FDirectionalLightInfo LightInfo = DirectionalLights[nIndex];
     
     float3 LightDir = normalize(-LightInfo.Direction);
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
@@ -185,26 +185,24 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 {
     float4 FinalColor = float4(0.0, 0.0, 0.0, 0.0);
     
-    // 다소 비효율적일 수도 있음.
-    [unroll(MAX_POINT_LIGHT)]
     for (int i = 0; i < PointLightsCount; i++)
     {
         FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
     }    
-    [unroll(MAX_SPOT_LIGHT)]
+
     for (int j = 0; j < SpotLightsCount; j++)
     {
         FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
     }
-    [unroll(MAX_DIRECTIONAL_LIGHT)]
+
     for (int k = 0; k < DirectionalLightsCount; k++)
     {
         FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor);
     }
-    [unroll(MAX_AMBIENT_LIGHT)]
+
     for (int l = 0; l < AmbientLightsCount; l++)
     {
-        FinalColor += float4(Ambient[l].AmbientColor.rgb, 0.0);
+        FinalColor += float4(AmbientLights[l].AmbientColor.rgb, 0.0);
         FinalColor.a = 1.0;
     }
     

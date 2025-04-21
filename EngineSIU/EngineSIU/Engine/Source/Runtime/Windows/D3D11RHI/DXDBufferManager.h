@@ -8,6 +8,7 @@
 #include "Container/Map.h"
 #include "Engine/Texture.h"
 #include "GraphicDevice.h"
+#include "Renderer/DXDStructuredBuffer.h"
 #include "UserInterface/Console.h"
 
 // ShaderStage 열거형
@@ -64,6 +65,9 @@ public:
     HRESULT CreateBufferGeneric(const FString& KeyName, T* data, UINT byteWidth, UINT bindFlags, D3D11_USAGE usage, UINT cpuAccessFlags);
 
     template<typename T>
+    HRESULT CreateStructuredBuffer(const FString& InKeyName, const TArray<T>& InData, bool bUpdateBuffer = false);
+    
+    template<typename T>
     void UpdateConstantBuffer(const FString& key, const T& data) const;
 
     template<typename T>
@@ -71,6 +75,7 @@ public:
 
     void BindConstantBuffers(const TArray<FString>& Keys, UINT StartSlot, EShaderStage Stage) const;
     void BindConstantBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
+    void BindStructuredBuffer(const FString& Key, UINT StartSlot, EShaderStage Stage) const;
 
     template<typename T>
     static void SafeRelease(T*& comObject);
@@ -81,6 +86,7 @@ public:
     FVertexInfo GetTextVertexBuffer(const FWString& InName) const;
     FIndexInfo GetTextIndexBuffer(const FWString& InName) const;
     ID3D11Buffer* GetConstantBuffer(const FString& InName) const;
+    FDXDStructuredBuffer GetStructuredBuffer(const FString& Key) const;
 
     void GetQuadBuffer(FVertexInfo& OutVertexInfo, FIndexInfo& OutIndexInfo);
     void GetTextBuffer(const FWString& Text, FVertexInfo& OutVertexInfo, FIndexInfo& OutIndexInfo);
@@ -89,12 +95,13 @@ private:
     // 16바이트 정렬
     inline UINT Align16(UINT size) { return (size + 15) & ~15; }
 private:
-    ID3D11Device* DXDevice = nullptr;
+    ID3D11Device* DXDDevice = nullptr;
     ID3D11DeviceContext* DXDeviceContext = nullptr;
 
     TMap<FString, FVertexInfo> VertexBufferPool;
     TMap<FString, FIndexInfo> IndexBufferPool;
     TMap<FString, ID3D11Buffer*> ConstantBufferPool;
+    TMap<FString, FDXDStructuredBuffer> StructuredBufferPool;
 
     TMap<FWString, FBufferInfo> TextAtlasBufferPool;
     TMap<FWString, FVertexInfo> TextAtlasVertexBufferPool;
@@ -123,7 +130,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FString& KeyName, co
     initData.pSysMem = vertices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -152,7 +159,7 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArra
     indexInitData.pSysMem = indices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -192,7 +199,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FWString& KeyName, c
     initData.pSysMem = vertices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -223,7 +230,7 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArr
     indexInitData.pSysMem = indices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -267,7 +274,7 @@ HRESULT FDXDBufferManager::CreateBufferGeneric(const FString& KeyName, T* data, 
     initData.pSysMem = data;
 
     ID3D11Buffer* buffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&desc, data ? &initData : nullptr, &buffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&desc, data ? &initData : nullptr, &buffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Error Create Constant Buffer!"));
@@ -277,6 +284,72 @@ HRESULT FDXDBufferManager::CreateBufferGeneric(const FString& KeyName, T* data, 
     ConstantBufferPool.Add(KeyName, buffer);
     return S_OK;
 }
+
+template <typename T>
+HRESULT FDXDBufferManager::CreateStructuredBuffer(const FString& InKeyName, const TArray<T>& InData, bool bUpdateBuffer)
+{
+    if (bUpdateBuffer && StructuredBufferPool.Contains(InKeyName))
+    {
+        StructuredBufferPool[InKeyName].Buffer->Release();
+        StructuredBufferPool[InKeyName].SRV->Release();
+        StructuredBufferPool[InKeyName].UAV->Release();
+        StructuredBufferPool.Remove(InKeyName);
+    }
+    
+    if (StructuredBufferPool.Contains(InKeyName))
+    {
+        return S_OK;
+    }
+
+    FDXDStructuredBuffer NewStructuredBuffer;
+    UINT ElementCount = InData.Num();
+    UINT ElementStride = sizeof(T);
+
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = ElementStride * ElementCount;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    bufferDesc.StructureByteStride = ElementStride;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = InData.GetData();
+
+    HRESULT hr = DXDDevice->CreateBuffer(&bufferDesc, &initData, &NewStructuredBuffer.Buffer);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = ElementCount;
+
+    hr = DXDDevice->CreateShaderResourceView(NewStructuredBuffer.Buffer, &srvDesc, &NewStructuredBuffer.SRV);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+    uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.FirstElement = 0;
+    uavDesc.Buffer.NumElements = ElementCount;
+
+    hr = DXDDevice->CreateUnorderedAccessView(NewStructuredBuffer.Buffer, &uavDesc, &NewStructuredBuffer.UAV);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+
+    StructuredBufferPool.Add(InKeyName, NewStructuredBuffer);
+    return hr;
+}
+
 
 template<typename T>
 void FDXDBufferManager::UpdateConstantBuffer(const FString& key, const T& data) const
