@@ -112,6 +112,9 @@ void FStaticMeshRenderPass::CreateSampler()
     comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
     comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    //comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    //comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    //comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     comparisonSamplerDesc.BorderColor[0] = 1.0f;
     comparisonSamplerDesc.BorderColor[1] = 1.0f;
     comparisonSamplerDesc.BorderColor[2] = 1.0f;

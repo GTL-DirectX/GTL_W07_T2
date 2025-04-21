@@ -36,7 +36,7 @@ cbuffer TextureConstants : register(b4)
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
-    float bias = 0.001f;
+    float bias = 0.5f;
 
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
@@ -69,8 +69,10 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
         0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
         0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
     };
+    
     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-    LightDistance -= bias;
+    
+    //LightDistance -= bias;
     
     return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
 }
@@ -119,6 +121,5 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     }
 
     FinalColor *= ShadowMapLight;
-    
     return FinalColor;
 }

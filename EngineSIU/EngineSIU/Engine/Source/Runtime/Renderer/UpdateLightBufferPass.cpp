@@ -104,31 +104,25 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             // 타겟 방향
             FVector targetPos = sceneCenter;
 
-            FVector upVector = { 1.0f, 0.0f, 0.0f };
+            FVector Forward = invDir.GetSafeNormal();
+            FVector TempUp = FVector(0, 0, 1);
 
+            if (abs(Forward.Dot(TempUp)) > 0.99f)
+                TempUp = FVector(1, 0, 0);
+
+            FVector Right = TempUp.Cross(Forward).GetSafeNormal();
+            FVector UpVector = Forward.Cross(Right); // 진짜 Up
+
+            //FVector upVector = { 0.0f, 0.0f, 1.0f };
             
             LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
 
-           /* FMatrix RotationMatrix = Light->GetRotationMatrix();
-            FMatrix TransposedRotMat = FMatrix::Transpose(RotationMatrix);
-            FMatrix TranslationMatrix = Light->GetTranslationMatrix();
-            FMatrix ViewMatrix = TransposedRotMat * TranslationMatrix;*/
-            
             FMatrix ViewMatrix;
-            ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, upVector);
-            /*ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());*/
-            
-            /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
-                ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f });
-            }
-
-            else {*/
-            /*ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });*/
-            //}
+            ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
             
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 100);
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 500);
             
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
@@ -155,9 +149,23 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
             LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
 
-            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
+            FVector eyePos = Light->GetWorldLocation();
+
+            // 타겟 방향
+            FVector targetPos = Light->GetWorldLocation() + Light->GetDirection();
+
+            FVector Forward = targetPos - eyePos;
+            FVector TempUp = FVector(0, 0, 1);
+
+            if (abs(Forward.Dot(TempUp)) > 0.99f)
+                TempUp = FVector(1, 0, 0);
+
+            FVector Right = TempUp.Cross(Forward).GetSafeNormal();
+            FVector UpVector = Forward.Cross(Right); // 진짜 Up
+
+            FMatrix ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
             // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
-            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::RadiansToDegrees(Light->GetOuterAngle()), 1, 0.001, Light->GetRadius());
+            FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::RadiansToDegrees(Light->GetOuterAngle()) * 1.5f, 1, 0.001, Light->GetRadius());
 
             LightBufferData.SpotLights[SpotLightsCount].View = ViewMatrix;
             LightBufferData.SpotLights[SpotLightsCount].Projection = ProjectionMatrix;

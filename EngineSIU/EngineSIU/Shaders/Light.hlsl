@@ -160,14 +160,24 @@ float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
     }
     
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
+    //DiffuseColor = float3(1, 1, 1);
     
 #ifdef LIGHTING_MODEL_LAMBERT
     float3 Lit = DiffuseFactor * DiffuseColor * LightInfo.LightColor.rgb;
+    //Lit = float4(1, 0, 0, 1);
+    //Attenuation = 1;
+    //SpotlightFactor = 1;
+    //LightInfo.Intensity = 1;
 #else
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
     float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar);
+
+    //float3 LightColorIntensity = LightInfo.LightColor.rgb * LightInfo.Intensity;
+    //float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightColorIntensity;
+    
     float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightInfo.LightColor.rgb;
 #endif
+    //return float4(Lit * Attenuation * SpotlightFactor, 1.0);
     
     return float4(Lit * Attenuation * SpotlightFactor * LightInfo.Intensity, 1.0);
 }
@@ -212,7 +222,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     [unroll(MAX_AMBIENT_LIGHT)]
     for (int l = 0; l < AmbientLightsCount; l++)
     {
-        FinalColor += float4(Ambient[l].AmbientColor.rgb, 0.0);
+        FinalColor += float4(DiffuseColor, 1) * float4(Ambient[l].AmbientColor.rgb, 0.0);
         FinalColor.a = 1.0;
     }
     
