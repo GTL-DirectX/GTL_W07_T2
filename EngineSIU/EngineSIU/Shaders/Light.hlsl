@@ -132,7 +132,7 @@ float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float Wor
     float3 Lit = (DiffuseFactor * DiffuseColor) * LightInfo.LightColor.rgb;
 #else
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar);
+    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar, 0.5);
     float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightInfo.LightColor.rgb;
 #endif
     

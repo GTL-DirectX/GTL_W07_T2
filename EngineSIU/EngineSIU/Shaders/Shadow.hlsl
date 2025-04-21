@@ -24,8 +24,8 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     if (DirectionalLightsCount > LightIndex)
     {
         uint TargetIndex = LightIndex;
-        output.Pos = mul(output.Pos, Directional[TargetIndex].ViewMatrix);
-        output.Pos = mul(output.Pos, Directional[TargetIndex].ProjectionMatrix);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ViewMatrix);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ProjectionMatrix);
     }
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
