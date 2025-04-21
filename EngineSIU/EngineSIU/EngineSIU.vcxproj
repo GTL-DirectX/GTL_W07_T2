@@ -266,6 +266,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\EditorBillboardRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\EditorRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\FogRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\FShadowRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\GizmoRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\LineRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\PostProcessCompositingPass.cpp" />
@@ -432,6 +433,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorBillboardRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\FogRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\FShadowRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\GizmoRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\IRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\LineRenderPass.h" />
@@ -442,6 +444,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\SlateRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\StaticMeshRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Types\ShadowTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\UpdateLightBufferPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\WorldBillboardRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Serialization\Serializer.h" />
@@ -577,6 +580,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Engine\Source\Runtime\Renderer\RenderPass\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

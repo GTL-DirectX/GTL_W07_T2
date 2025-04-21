@@ -35,6 +35,12 @@ float3 SRGBToLinear(float3 color)
     return color;
 }
 
+float LinearNormalizeDepth(float z_ndc, float nearZ, float farZ)
+{
+    float LinearValue = nearZ * farZ / (farZ - z_ndc * (farZ - nearZ));
+    return saturate((LinearValue - nearZ) / (farZ - nearZ));
+}
+
 struct FMaterial
 {
     float3 DiffuseColor;

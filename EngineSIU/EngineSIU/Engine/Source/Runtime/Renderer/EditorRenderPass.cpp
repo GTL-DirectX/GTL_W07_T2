@@ -426,7 +426,7 @@ void FEditorRenderPass::PrepareRendertarget(std::shared_ptr<FEditorViewportClien
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencilView());
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, ViewportResource->GetDepthStencil(EDepthType::EDT_Depth)->DSV);
 
 }
 

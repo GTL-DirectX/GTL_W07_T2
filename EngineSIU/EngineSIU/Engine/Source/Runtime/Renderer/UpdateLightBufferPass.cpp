@@ -11,6 +11,7 @@
 #include "Components/Light/AmbientLightComponent.h"
 #include "Engine/EditorEngine.h"
 #include "GameFramework/Actor.h"
+#include "Math/JungleMath.h"
 #include "UObject/UObjectIterator.h"
 
 //------------------------------------------------------------------------------
@@ -85,11 +86,93 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
     
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
+        // if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
+        // {
+        //     // 씬 바운딩 스피어 정보
+        //     FVector sceneCenter = FVector(0, 0, 0);
+        //     float sphereRadius = 100.0f;
+
+        //     // 라이트 방향 벡터 가져와 단위화 및 반전
+        //     FVector lightDir = Light->GetDirection().GetSafeNormal();
+        //     FVector invDir = -lightDir;
+
+        //     // 교차 지점 계산
+        //     FVector eyePos = sceneCenter + invDir * sphereRadius;
+
+        //     // 타겟 방향
+        //     FVector targetPos = sceneCenter;
+
+        //     FVector upVector = { 0.0f, 0.0f, 1.0f };
+        //     /*FVector worldUp1 = FVector(0, 0, 1);
+        //     FVector worldUp2 = FVector(0, 1, 0);
+        //     FVector forward = (targetPos - eyePos).GetSafeNormal();
+
+        //     float cos1 = FMath::Abs(FVector::DotProduct(forward, worldUp1));
+        //     float cos2 = FMath::Abs(FVector::DotProduct(forward, worldUp2));
+        //     FVector upVector = (cos1 < cos2) ? worldUp1 : worldUp2;*/
+        //     /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999))
+        //     {
+        //         upVector = { 0.0f, 0.0f, 1.0f };
+        //     }*/
+        //     LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
+        //     LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
+
+        //    /* FMatrix RotationMatrix = Light->GetRotationMatrix();
+        //     FMatrix TransposedRotMat = FMatrix::Transpose(RotationMatrix);
+        //     FMatrix TranslationMatrix = Light->GetTranslationMatrix();
+        //     FMatrix ViewMatrix = TransposedRotMat * TranslationMatrix;*/
+            
+        //     FMatrix ViewMatrix;
+
+        //     ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, upVector);
+        //     /*ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());*/
+            
+        //     /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
+        //         ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f });
+        //     }
+
+        //     else {*/
+        //     /*ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });*/
+        //     //}
+            
+        //     // TODO 임시값
+        //     FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(200, 200, 0.1f, 200);
+            
+        //     LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
+        //     LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
+            
+        //     DirectionalLightsCount++;
+        // }
         DirectionalLightInfo.Add(GetDirectionalLightInfo(Light));
     }
 
     for (UAmbientLightComponent* Light : AmbientLights)
     {
+    //     if (AmbientLightsCount < MAX_AMBIENT_LIGHT)
+    //     {
+    //         LightBufferData.Ambient[AmbientLightsCount] = GetAmbientLightInfo(Light);
+    //         LightBufferData.Ambient[AmbientLightsCount].AmbientColor = Light->GetLightColor();
+    //         AmbientLightsCount++;
+    //     }
+    // }
+    
+    // for (USpotLightComponent* Light : SpotLights)
+    // {        
+    //     if (SpotLightsCount < MAX_SPOT_LIGHT)
+    //     {
+    //         LightBufferData.SpotLights[SpotLightsCount] = GetSpotLightInfo(Light);
+    //         LightBufferData.SpotLights[SpotLightsCount].Position = Light->GetWorldLocation();
+    //         LightBufferData.SpotLights[SpotLightsCount].Direction = Light->GetDirection();
+
+    //         FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f,0.0f, 1.0f });
+    //         // TODO: 임시값 (30 ~ 60값 추천이라 GPT 말함)
+    //         FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::RadiansToDegrees(Light->GetOuterAngle()), 1, 0.001, Light->GetRadius());
+            
+    //         LightBufferData.SpotLights[SpotLightsCount].View = ViewMatrix;
+    //         LightBufferData.SpotLights[SpotLightsCount].Projection = ProjectionMatrix;
+            
+    //         SpotLightsCount++;
+    //     }
         AmbientLightInfo.Add(GetAmbientLightInfo(Light));
     }
     
@@ -100,6 +183,20 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
     for (UPointLightComponent* Light : PointLights)
     {
+        // if (PointLightsCount < MAX_POINT_LIGHT)
+        // {
+        //     LightBufferData.PointLights[PointLightsCount] = GetPointLightInfo(Light);
+        //     LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
+
+        //     FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
+        //     // TODO: 임시값
+        //     FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(90), 1, 0.001, D3D11_FLOAT32_MAX);
+            
+        //     LightBufferData.PointLights[PointLightsCount].View = ViewMatrix;
+        //     LightBufferData.PointLights[PointLightsCount].Projection = ProjectionMatrix;
+
+        //     PointLightsCount++;
+        // }
         PointLightInfo.Add(GetPointLightInfo(Light));
     }
 

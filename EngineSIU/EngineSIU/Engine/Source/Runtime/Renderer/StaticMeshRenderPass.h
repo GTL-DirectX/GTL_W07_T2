@@ -43,6 +43,8 @@ public:
     void CreateShader();
     void ReleaseShader();
 
+    void CreateSampler();
+
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
     
 private:
@@ -58,4 +60,5 @@ private:
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
+    ID3D11SamplerState* ShadowSampler;
 };
