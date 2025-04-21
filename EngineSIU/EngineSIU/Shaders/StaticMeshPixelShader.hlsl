@@ -36,7 +36,7 @@ cbuffer TextureConstants : register(b4)
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
-    float bias = 0.001f;
+    float bias = 0.001;
 
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
@@ -121,7 +121,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
     
-    finalcolor *= shadowmaplight;
+    FinalColor *= ShadowMapLight;
     
     return FinalColor;
 }
