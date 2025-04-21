@@ -5,7 +5,7 @@
 
 void FDXDBufferManager::Initialize(ID3D11Device* InDXDevice, ID3D11DeviceContext* InDXDeviceContext)
 {
-    DXDevice = InDXDevice;
+    DXDDevice = InDXDevice;
     DXDeviceContext = InDXDeviceContext;
     CreateQuadBuffer();
 }

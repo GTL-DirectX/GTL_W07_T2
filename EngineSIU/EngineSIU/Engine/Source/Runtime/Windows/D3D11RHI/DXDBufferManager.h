@@ -8,6 +8,7 @@
 #include "Container/Map.h"
 #include "Engine/Texture.h"
 #include "GraphicDevice.h"
+#include "Renderer/DXDStructuredBuffer.h"
 #include "UserInterface/Console.h"
 
 // ShaderStage 열거형
@@ -93,7 +94,7 @@ private:
     // 16바이트 정렬
     inline UINT Align16(UINT size) { return (size + 15) & ~15; }
 private:
-    ID3D11Device* DXDevice = nullptr;
+    ID3D11Device* DXDDevice = nullptr;
     ID3D11DeviceContext* DXDeviceContext = nullptr;
 
     TMap<FString, FVertexInfo> VertexBufferPool;
@@ -128,7 +129,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FString& KeyName, co
     initData.pSysMem = vertices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -157,7 +158,7 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FString& KeyName, const TArra
     indexInitData.pSysMem = indices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -197,7 +198,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FWString& KeyName, c
     initData.pSysMem = vertices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&bufferDesc, &initData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -228,7 +229,7 @@ HRESULT FDXDBufferManager::CreateIndexBuffer(const FWString& KeyName, const TArr
     indexInitData.pSysMem = indices.GetData();
 
     ID3D11Buffer* NewBuffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&indexBufferDesc, &indexInitData, &NewBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -272,7 +273,7 @@ HRESULT FDXDBufferManager::CreateBufferGeneric(const FString& KeyName, T* data, 
     initData.pSysMem = data;
 
     ID3D11Buffer* buffer = nullptr;
-    HRESULT hr = DXDevice->CreateBuffer(&desc, data ? &initData : nullptr, &buffer);
+    HRESULT hr = DXDDevice->CreateBuffer(&desc, data ? &initData : nullptr, &buffer);
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, TEXT("Error Create Constant Buffer!"));
