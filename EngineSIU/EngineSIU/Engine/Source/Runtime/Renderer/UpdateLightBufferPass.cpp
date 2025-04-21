@@ -90,6 +90,23 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
     {
         if (DirectionalLightsCount < MAX_DIRECTIONAL_LIGHT)
         {
+            // 씬 바운딩 스피어 정보
+            FVector sceneCenter = FVector(0, 0, 0);
+            float sphereRadius = 100;
+
+            // 라이트 방향 벡터 가져와 단위화 및 반전
+            FVector lightDir = Light->GetDirection().GetSafeNormal();
+            FVector invDir = -lightDir;
+
+            // 교차 지점 계산
+            FVector eyePos = sceneCenter + invDir * sphereRadius;
+
+            // 타겟 방향
+            FVector targetPos = sceneCenter;
+
+            FVector upVector = { 1.0f, 0.0f, 0.0f };
+
+            
             LightBufferData.Directional[DirectionalLightsCount] = GetDirectionalLightInfo(Light);
             LightBufferData.Directional[DirectionalLightsCount].Direction = Light->GetDirection();
 
@@ -100,19 +117,19 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
             
             FMatrix ViewMatrix;
 
-            
-            ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());
+            ViewMatrix = JungleMath::CreateViewMatrix(eyePos, targetPos, upVector);
+            /*ViewMatrix = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation().ToVector(), Light->GetWorldScale3D());*/
             
             /*if (FMath::Abs(FVector::DotProduct(Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f }) > 0.999)) {
                 ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 0.0f, 1.0f });
             }
 
-            else {
-                ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });
-            }*/
+            else {*/
+            /*ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetDirection(), FVector{ 0.0f, 1.0f, 0.0f });*/
+            //}
             
             // TODO 임시값
-            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(1000, 1000, 0.1f, 1000);
+            FMatrix ProjectionMatrix = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 100);
             
             LightBufferData.Directional[DirectionalLightsCount].View = ViewMatrix;
             LightBufferData.Directional[DirectionalLightsCount].Projection = ProjectionMatrix;
