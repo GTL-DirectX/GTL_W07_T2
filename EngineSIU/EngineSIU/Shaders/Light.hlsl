@@ -74,26 +74,25 @@ cbuffer cbLightCount : register(b0)
     int AmbientLightsCount;
 };
 
-float CalculateAttenuation(float Distance, float AttenuationFactor, float Radius)
+float GetDistanceAttenuation(float Distance, float Radius)
 {
-    if (Distance > Radius)
-    {
-        return 0.0;
-    }
-
-    float Falloff = 1.0 / (1.0 + AttenuationFactor * Distance * Distance);
-    float SmoothFactor = (1.0 - (Distance / Radius)); // 부드러운 falloff
-
-    return Falloff * SmoothFactor;
+    float  InvRadius = 1.0 / Radius;
+    float  DistSqr = Distance * Distance;
+    float  RadiusMask = saturate(1.0 - DistSqr * InvRadius * InvRadius);
+    RadiusMask *= RadiusMask;
+    
+    return RadiusMask / (DistSqr + 1.0);
 }
 
-float CalculateSpotEffect(float3 LightDir, float3 SpotDir, float InnerRadius, float OuterRadius, float SpotFalloff)
+float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, float3 SpotDir, float InnerRadius, float OuterRadius)
 {
-    float Dot = dot(-LightDir, SpotDir); // [-1,1]
+    float DistAtten = GetDistanceAttenuation(Distance, Radius);
     
-    float SpotEffect = smoothstep(cos(OuterRadius / 2), cos(InnerRadius / 2), Dot);
+    float  CosTheta = dot(SpotDir, -LightDir);
+    float  SpotMask = saturate((CosTheta - cos(OuterRadius)) / (cos(InnerRadius) - cos(OuterRadius)));
+    SpotMask *= SpotMask;
     
-    return SpotEffect * pow(max(Dot, 0.0), SpotFalloff);
+    return DistAtten * SpotMask;
 }
 
 float CalculateDiffuse(float3 WorldNormal, float3 LightDir)
@@ -113,72 +112,60 @@ float CalculateSpecular(float3 WorldNormal, float3 ToLightDir, float3 ViewDir, f
     return Spec * SpecularStrength;
 }
 
-float4 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
+float3 PointLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
 {
     FPointLightInfo LightInfo = PointLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
     
-    float Attenuation = CalculateAttenuation(Distance, LightInfo.Attenuation, LightInfo.Radius);
+    float Attenuation = GetDistanceAttenuation(Distance, LightInfo.Radius);
     if (Attenuation <= 0.0)
     {
-        return float4(0.f, 0.f, 0.f, 0.f);
+        return float3(0.f, 0.f, 0.f);
     }
     
     float3 LightDir = normalize(ToLight);
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
-#ifdef LIGHTING_MODEL_LAMBERT
-    float3 Lit = (DiffuseFactor * DiffuseColor) * LightInfo.LightColor.rgb;
-#else
+
+    float3 Lit = (DiffuseFactor * DiffuseColor);
+#ifndef LIGHTING_MODEL_LAMBERT
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar, 0.5);
-    float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightInfo.LightColor.rgb;
+    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
+    Lit += SpecularFactor * SpecularColor;
 #endif
     
-    return float4(Lit * Attenuation * LightInfo.Intensity, 1.0);
+    return Lit * Attenuation * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float4 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
+float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
 {
     FSpotLightInfo LightInfo = SpotLights[Index];
     
     float3 ToLight = LightInfo.Position - WorldPosition;
     float Distance = length(ToLight);
-    
-    float Attenuation = CalculateAttenuation(Distance, LightInfo.Attenuation, LightInfo.Radius);
-    if (Attenuation <= 0.0)
-    {
-        return float4(0.0, 0.0, 0.0, 0.0);
-    }
-    
     float3 LightDir = normalize(ToLight);
-    float SpotlightFactor = CalculateSpotEffect(LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad, LightInfo.Attenuation);
+    
+    float SpotlightFactor = GetSpotLightAttenuation(Distance, LightInfo.Radius, LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad);
     if (SpotlightFactor <= 0.0)
     {
-        return float4(0.0, 0.0, 0.0, 0.0);
+        return float3(0.0, 0.0, 0.0);
     }
     
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
     //DiffuseColor = float3(1, 1, 1);
     
-#ifdef LIGHTING_MODEL_LAMBERT
-    float3 Lit = DiffuseFactor * DiffuseColor * LightInfo.LightColor.rgb;
-    //Lit = float4(1, 0, 0, 1);
-    //Attenuation = 1;
-    //SpotlightFactor = 1;
-    //LightInfo.Intensity = 1;
-#else
+    float3 Lit = DiffuseFactor * DiffuseColor;
+#ifndef LIGHTING_MODEL_LAMBERT
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar);
-
-    float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightInfo.LightColor.rgb;
+    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
+    Lit += SpecularFactor * SpecularColor;
 #endif
     
-    return float4(Lit * Attenuation * SpotlightFactor * LightInfo.Intensity, 1.0);
+    return Lit * SpotlightFactor * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
+float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
 {
     FDirectionalLightInfo LightInfo = DirectionalLights[nIndex];
     
@@ -186,38 +173,36 @@ float4 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     float3 ViewDir = normalize(WorldViewPosition - WorldPosition);
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
     
-#ifdef LIGHTING_MODEL_LAMBERT
-    float3 Lit = DiffuseFactor * DiffuseColor * LightInfo.LightColor.rgb;
-#else
-    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, SpecularScalar);
-    float3 Lit = ((DiffuseFactor * DiffuseColor) + (SpecularFactor * SpecularColor)) * LightInfo.LightColor.rgb;
+    float3 Lit = DiffuseFactor * DiffuseColor;
+#ifndef LIGHTING_MODEL_LAMBERT
+    float SpecularFactor = CalculateSpecular(WorldNormal, LightDir, ViewDir, Shininess);
+    Lit += SpecularFactor * SpecularColor;
 #endif
-    return float4(Lit * LightInfo.Intensity, 1.0);
+    return Lit * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
+float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
 {
-    float4 FinalColor = float4(0.0, 0.0, 0.0, 0.0);
+    float3 FinalColor = float3(0.0, 0.0, 0.0);
     
     for (int i = 0; i < PointLightsCount; i++)
     {
-        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, SpecularScalar);
+        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
     }    
 
     for (int j = 0; j < SpotLightsCount; j++)
     {
-        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, SpecularScalar);
+        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
     }
 
     for (int k = 0; k < DirectionalLightsCount; k++)
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, SpecularScalar);
+        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
     }
 
     for (int l = 0; l < AmbientLightsCount; l++)
     {
-        FinalColor += float4(DiffuseColor, 1) * float4(Ambient[l].AmbientColor.rgb, 0.0);
-        FinalColor.a = 1.0;
+        FinalColor += AmbientLights[l].AmbientColor.rgb * DiffuseColor;
     }
     
     return FinalColor;

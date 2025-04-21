@@ -268,8 +268,8 @@ FSpotLightInfo FUpdateLightBufferPass::GetSpotLightInfo(const USpotLightComponen
     LightInfo.Radius = LightComp->GetRadius();
     LightInfo.Intensity = LightComp->GetIntensity();
     LightInfo.Type = LightComp->GetLightType();
-    LightInfo.InnerRad = LightComp->GetInnerAngle();
-    LightInfo.OuterRad = LightComp->GetOuterAngle();
+    LightInfo.InnerRad = FMath::DegreesToRadians(LightComp->GetInnerAngle());
+    LightInfo.OuterRad = FMath::DegreesToRadians(LightComp->GetOuterAngle());
     LightInfo.Attenuation = LightComp->GetAttenuation();
     LightInfo.Direction = LightComp->GetDirection();
 
