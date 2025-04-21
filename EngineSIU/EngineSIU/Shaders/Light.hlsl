@@ -153,6 +153,7 @@ float3 SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 Wor
     }
     
     float DiffuseFactor = CalculateDiffuse(WorldNormal, LightDir);
+    //DiffuseColor = float3(1, 1, 1);
     
     float3 Lit = DiffuseFactor * DiffuseColor;
 #ifndef LIGHTING_MODEL_LAMBERT

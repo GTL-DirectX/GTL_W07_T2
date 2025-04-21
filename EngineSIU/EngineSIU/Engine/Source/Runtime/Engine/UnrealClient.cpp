@@ -144,9 +144,14 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
 
     if (Type == EDepthType::EDT_ShadowDepth)
     {
+        uint32 ShadowMapResolution = 1024;
+
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
         // TODO : Widht, Height Viewprot아닌 다른 사이즈로 하면 RTV도 수정 요함.
+        //TextureDesc.Width = ShadowMapResolution;
+        //TextureDesc.Height = ShadowMapResolution;
+
         TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
         TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
         TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;

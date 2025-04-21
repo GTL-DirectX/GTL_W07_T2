@@ -38,26 +38,33 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
         uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ViewMatrix);
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ProjectionMatrix);
-        output.Pos.r = 0;
     }
-        
+    
     return output;
 }
 
 float4 mainPS(VS_OUTPUT Input) : SV_TARGET
 {
     //return float4(1, 1, 1, 1);
+    //return float4(Input.Pos.z.xxx, 1);
     
-    float NearPlane = 0.01;
+    //float NearPlane = 0.01;
+    //float FarPlane = 30;
     
-    float FarPlane = 200;
-    
-    float DepthRaw = Input.Pos.z / Input.Pos.w;
+    //float DepthRaw = Input.Pos.z / Input.Pos.w;
 
-    float DepthNDC = DepthRaw * 2.0 - 1.0;
+    //float DepthNDC = DepthRaw * 2.0 - 1.0;
+    
+    float DepthNDC = Input.Pos.z / Input.Pos.w;
+    
+    //float DepthLinearized = (2.0 * NearPlane * FarPlane) / (FarPlane + NearPlane - DepthNDC * (FarPlane - NearPlane));
     
     float DepthLinearized = (2.0 * NearPlane * FarPlane) / (FarPlane + NearPlane - DepthNDC * (FarPlane - NearPlane));
-
     float DepthNormalized = saturate((DepthLinearized - NearPlane) / (FarPlane - NearPlane));
+    
+    //float DepthLinearized = (NearPlane * FarPlane) / (FarPlane - DepthNDC * (FarPlane - NearPlane));
+    //float DepthNormalized = saturate((DepthLinearized - NearPlane) / (FarPlane - NearPlane));
+    DepthNormalized = DepthNDC;
+    
     return float4(DepthNormalized, DepthNormalized, DepthNormalized, 1.0);
 }
