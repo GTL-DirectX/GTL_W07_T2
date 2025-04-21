@@ -308,7 +308,7 @@ void PropertyEditorPanel::RenderForAmbientLightComponent(UAmbientLightComponent*
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorRawRGB8()); });
         ImGui::TreePop();
     }
 
@@ -323,7 +323,7 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorRawRGB8()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 150.0f, "%.1f"))
@@ -346,7 +346,7 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorRawRGB8()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
@@ -372,7 +372,7 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
     {
         DrawColorProperty("Light Color",
             [&]() { return LightComponent->GetLightColor(); },
-            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorSRGB()); });
+            [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorRawRGB8()); });
 
         float Intensity = LightComponent->GetIntensity();
         if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
