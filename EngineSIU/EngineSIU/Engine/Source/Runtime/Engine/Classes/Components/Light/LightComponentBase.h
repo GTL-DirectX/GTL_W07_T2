@@ -20,10 +20,13 @@ public:
     void SetIntensity(float InIntensity) { Intensity = InIntensity; }
     FColor GetLightColor() const { return LightColor; }
     void SetLightColor(const FColor& InColor) { LightColor = InColor; }
+
     
 protected:
     float Intensity;
     FColor LightColor;
+    FMatrix ViewMatrix;
+    FMatrix ProjectionMatrix;
 
 public:
     bool GetCastShadows() const { return bCastShadows; }
