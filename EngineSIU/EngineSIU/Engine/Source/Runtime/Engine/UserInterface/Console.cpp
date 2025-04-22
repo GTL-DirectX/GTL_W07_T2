@@ -4,6 +4,16 @@
 
 #include "UnrealEd/EditorViewportClient.h"
 
+#include "Engine/Engine.h"
+#include "Components/Light/LightComponent.h"
+#include <UObject/UObjectIterator.h>
+
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+#include "Components/Light/AmbientLightComponent.h"
+#include <UObject/Casts.h>
+
 
 void StatOverlay::ToggleStat(const std::string& command)
 {
@@ -17,11 +27,18 @@ void StatOverlay::ToggleStat(const std::string& command)
         showMemory = true;
         showRender = true;
     }
+    else if (command == "stat light")
+    {
+        showFPS = true;
+        showLight = true;
+        showRender = true;
+    }
     else if (command == "stat none")
     {
         showFPS = false;
         showMemory = false;
         showRender = false;
+        showLight = false;
     }
 }
 
@@ -62,7 +79,6 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height) 
         ImGui::Text("FPS: %.2f", fps);
     }
 
-
     if (showMemory)
     {
         ImGui::Text("Allocated Object Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Object>());
@@ -70,6 +86,41 @@ void StatOverlay::Render(ID3D11DeviceContext* context, UINT width, UINT height) 
         ImGui::Text("Allocated Container Count: %llu", FPlatformMemory::GetAllocationCount<EAT_Container>());
         ImGui::Text("Allocated Container memory: %llu B", FPlatformMemory::GetAllocationBytes<EAT_Container>());
     }
+
+    if (showLight)
+    {
+        int LightCount = 0;
+        float LightMemory = 0.0f;
+        for (auto It : TObjectRange<ULightComponent>())
+        {
+            if (It->GetWorld() != GEngine->ActiveWorld)
+                continue;
+            LightCount++;
+
+            if (It->GetLightType() == ELightComponentType::LightType_Directional)
+            {
+                LightMemory += sizeof(UDirectionalLightComponent);
+            }
+            else if (It->GetLightType() == ELightComponentType::LightType_Point)
+            {
+                LightMemory += sizeof(UPointLightComponent);
+            }
+            else if (It->GetLightType() == ELightComponentType::LightType_Spot)
+            {
+                LightMemory += sizeof(USpotLightComponent);
+            }
+            else if (Cast<UAmbientLightComponent>(It))
+            {
+                LightMemory += sizeof(UAmbientLightComponent);
+            }
+            LightMemory += sizeof(*It);
+        }
+
+        // 사용된 메모리 량.
+        ImGui::Text("Light Count: %d", LightCount);
+        ImGui::Text("Light Memory: %.2f MB", LightMemory);
+    }
+
     ImGui::PopStyleColor();
     ImGui::End();
 }
