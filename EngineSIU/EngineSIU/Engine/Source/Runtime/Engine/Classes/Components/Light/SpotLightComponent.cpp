@@ -7,8 +7,10 @@ USpotLightComponent::USpotLightComponent()
 {
     Radius = 30.0f;
     Intensity = 1000.0f;
-    InnerAngle = 0.2618f; // 15 degrees
-    OuterAngle = 0.5236f; // 30 degrees
+    //InnerAngle = 0.2618f; // 15 degrees
+    //OuterAngle = 0.5236f; // 30 degrees
+    InnerAngle = 20;
+    OuterAngle = 30;
     Attenuation = 20.0f;
 }
 

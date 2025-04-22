@@ -33,7 +33,7 @@ cbuffer TextureConstants : register(b4)
 
 #include "Light.hlsl"
 
-float GetLightFromShadowMap(float3 WorldPos, float3 WorldNormal)
+float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
     float BiasStep = 0.000001f;
     float MinBias = 0.0f;
@@ -103,7 +103,7 @@ float GetLightFromShadowMap(float3 WorldPos, float3 WorldNormal)
             float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
 
             float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-            LightDistance -= bias;
+            //LightDistance -= bias;
 
             // 큐브맵 샘플링
             ShadowSum += PointShadowMap.SampleCmpLevelZero(
@@ -171,7 +171,8 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
     }
     
-    float ShadowMapLight = GetLightFromShadowMap(Input.WorldPosition, Input.WorldNormal);
+    float ShadowMapLight = GetLightFromShadowMap(Input);
+    //float ShadowMapLight = GetLightFromShadowMap(Input.WorldPosition, Input.WorldNormal);
     
     // Lighting
     if (IsLit)
