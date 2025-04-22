@@ -2,10 +2,7 @@
 #include "Math/Vector.h"
 #include "Math/Color.h"
 
-#define MAX_AMBIENT_LIGHT 16
-#define MAX_DIRECTIONAL_LIGHT 16
-#define MAX_POINT_LIGHT 16
-#define MAX_SPOT_LIGHT 16
+#include "Renderer/Types/ShadowTypes.h"
 
 #define LIGHT_TYPE_DIRECTIONAL		0 
 #define LIGHT_TYPE_POINT			1 
@@ -27,6 +24,8 @@ struct FDirectionalLightInfo
 
     FMatrix View;
     FMatrix Projection;
+
+    FShadowInfo ShadowInfo; // 그림자 정보
 };
 
 struct FPointLightInfo
@@ -43,6 +42,8 @@ struct FPointLightInfo
 
     FMatrix View[6];
     FMatrix Projection;
+
+    FShadowInfo ShadowInfo; // 그림자 정보
 };
 
 struct FSpotLightInfo
@@ -62,6 +63,8 @@ struct FSpotLightInfo
 
     FMatrix View;
     FMatrix Projection;
+
+    FShadowInfo ShadowInfo; // 그림자 정보
 };
 
 struct FLightCount

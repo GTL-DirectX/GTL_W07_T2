@@ -7,6 +7,7 @@ struct FAmbientLightInfo;
 struct FDirectionalLightInfo;
 struct FSpotLightInfo;
 struct FPointLightInfo;
+struct FShadowInfo;
 
 class FDXDShaderManager;
 class FEditorViewportClient;
@@ -15,6 +16,7 @@ class UAmbientLightComponent;
 class UDirectionalLightComponent;
 class UPointLightComponent;
 class USpotLightComponent;
+class ULightComponent;
 
 class FUpdateLightBufferPass : public IRenderPass
 {
@@ -33,6 +35,7 @@ private:
     FDirectionalLightInfo GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const;
     FPointLightInfo GetPointLightInfo(const UPointLightComponent* LightComp) const;
     FSpotLightInfo GetSpotLightInfo(const USpotLightComponent* LightComp) const;
+    FShadowInfo GetShadowInfo(const ULightComponent* LightComp) const;
 
 private:
     TArray<USpotLightComponent*> SpotLights;
