@@ -55,6 +55,7 @@ void FEditorViewportClient::Tick(float DeltaTime)
     UpdateEditorCameraMovement(DeltaTime);
     UpdateViewMatrix();
     UpdateProjectionMatrix();
+    UpdateCameraFrustum();
     GizmoActor->Tick(DeltaTime);
 }
 
@@ -586,6 +587,11 @@ void FEditorViewportClient::SetOthoSize(float InValue)
 {
     OrthoSize += InValue;
     OrthoSize = FMath::Max(OrthoSize, 0.1f);
+}
+
+void FEditorViewportClient::UpdateCameraFrustum()
+{
+    CameraFrustum.BuildFromView(this);
 }
 
 void FEditorViewportClient::LoadConfig(const TMap<FString, FString>& config)

@@ -6,6 +6,7 @@
 #include "ViewportClient.h"
 #include "EngineLoop.h"
 #include "EngineBaseTypes.h"
+#include "Camera/CameraFrustum.h"
 
 #define MIN_ORTHOZOOM (1.0)  // 2D ortho viewport zoom >= MIN_ORTHOZOOM
 #define MAX_ORTHOZOOM (1e25)
@@ -143,6 +144,8 @@ public:
     uint64 ShowFlag;
     EViewModeIndex ViewMode;
 
+    FCameraFrustum CameraFrustum;
+
     FMatrix View;
     FMatrix Projection;
 
@@ -190,6 +193,10 @@ private: // Input
 
     // 카메라 움직임에 사용될 키를 임시로 저장해서 사용할 예정
     TSet<EKeys::Type> PressedKeys;
+
+    void UpdateCameraFrustum();
+
+    const FCameraFrustum& GetCameraFrustum() const { return CameraFrustum; }
 
 public:
     void LoadConfig(const TMap<FString, FString>& config);
