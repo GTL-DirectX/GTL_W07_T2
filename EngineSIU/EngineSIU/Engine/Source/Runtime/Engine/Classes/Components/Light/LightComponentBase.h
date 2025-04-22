@@ -29,8 +29,8 @@ protected:
     FMatrix ProjectionMatrix;
 
 public:
-    bool GetCastShadows() const { return bCastShadows; }
     void SetCastShadows(bool InCastShadows) { bCastShadows = InCastShadows; }
+    bool IsShadowCasting() const { return bCastShadows; }
 
 protected:
     bool bCastShadows;
