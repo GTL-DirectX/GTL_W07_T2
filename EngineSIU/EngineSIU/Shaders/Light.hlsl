@@ -88,8 +88,9 @@ float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, flo
 {
     float DistAtten = GetDistanceAttenuation(Distance, Radius);
     
-    float  CosTheta = dot(SpotDir, -LightDir);
-    float  SpotMask = saturate((CosTheta - cos(OuterRadius)) / (cos(InnerRadius) - cos(OuterRadius)));
+    float CosTheta = dot(normalize(SpotDir), -normalize(LightDir));
+    
+    float SpotMask = saturate((CosTheta - cos(OuterRadius)) / (cos(InnerRadius) - cos(OuterRadius)));
     SpotMask *= SpotMask;
     
     return DistAtten * SpotMask;

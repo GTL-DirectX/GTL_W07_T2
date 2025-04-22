@@ -173,7 +173,7 @@ FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDir
     LightInfo.Intensity = LightComp->GetIntensity();
     LightInfo.View = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
     // TODO : 임의값
-    LightInfo.Projection = JungleMath::CreateOrthoProjectionMatrix(200, 200, 0.1f, 200);
+    LightInfo.Projection = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 150);
 
     return LightInfo;
 }
@@ -201,8 +201,8 @@ FSpotLightInfo FUpdateLightBufferPass::GetSpotLightInfo(const USpotLightComponen
     LightInfo.Radius = LightComp->GetRadius();
     LightInfo.Intensity = LightComp->GetIntensity();
     LightInfo.Type = LightComp->GetLightType();
-    LightInfo.InnerRad = FMath::DegreesToRadians(LightComp->GetInnerAngle());
-    LightInfo.OuterRad = FMath::DegreesToRadians(LightComp->GetOuterAngle());
+    LightInfo.InnerRad = FMath::DegreesToRadians(LightComp->GetInnerAngle() * 0.5f);
+    LightInfo.OuterRad = FMath::DegreesToRadians(LightComp->GetOuterAngle() * 0.5f);
     LightInfo.Attenuation = LightComp->GetAttenuation();
     LightInfo.Direction = LightComp->GetDirection();
 

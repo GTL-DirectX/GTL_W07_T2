@@ -34,9 +34,11 @@ cbuffer TextureConstants : register(b4)
 
 #include "Light.hlsl"
 
-float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
+float GetLightFromShadowMap(float3 WorldPos, float3 WorldNormal)
 {
-    float bias = 0.001;
+    float BiasStep = 0.000001f;
+    float MinBias = 0.0f;
+    float3 LightDirection;
 
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
@@ -48,6 +50,7 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 
         LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
         LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
+        LightDirection = DirectionalLights[TargetIndex].Direction;
     }
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
@@ -60,9 +63,10 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
         uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
         LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
         LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+        LightDirection = SpotLights[TargetIndex].Direction;
     }
     
-    float4 LightViewPos = mul(float4(Input.WorldPosition, 1.0f), LightViewMatrix);
+    float4 LightViewPos = mul(float4(WorldPos, 1.0f), LightViewMatrix);
     float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
     
     float2 ShadowMapTexCoord = {
@@ -70,18 +74,26 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
         0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
     };
     
+    bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+    bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+    
     float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
     
-    //LightDistance -= bias;
+    if (IsInX || IsInY || LightDistance > 1)
+        return 1.0f;
     
-    return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
+    float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
+    
+    //LightDistance -= TotalBias;
+    
+    //return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    return ShadowMap.SampleCmp(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
 }
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
 {
     float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
-
-    float ShadowMapLight = GetLightFromShadowMap(Input);
 
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
@@ -100,6 +112,7 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
         WorldNormal = normalize(mul(mul(Normal, Input.TBN), (float3x3) InverseTransposedWorld));
     }
     
+    float ShadowMapLight = GetLightFromShadowMap(Input.WorldPosition, Input.WorldNormal);
     
     // Lighting
     if (IsLit)
