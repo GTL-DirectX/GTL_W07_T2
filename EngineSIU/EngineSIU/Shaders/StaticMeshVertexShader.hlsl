@@ -17,6 +17,8 @@ cbuffer MaterialConstants : register(b1)
 
 PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
 {
+    float ShadowMapLight = 1;
+    
     PS_INPUT_StaticMesh Output;
 
     Output.Position = float4(Input.Position, 1.0);
@@ -42,7 +44,7 @@ PS_INPUT_StaticMesh mainVS(VS_INPUT_StaticMesh Input)
     Output.MaterialIndex = Input.MaterialIndex;
 
 #ifdef LIGHTING_MODEL_GOURAUD
-    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, float3(1,1,1), Material.SpecularColor, Material.SpecularScalar);
+    float3 Diffuse = Lighting(Output.WorldPosition, Output.WorldNormal, ViewWorldLocation, float3(1,1,1), Material.SpecularColor, Material.SpecularScalar, ShadowMapLight);
     Output.Color = float4(Diffuse, 1.0);
 #else
     Output.Color = Input.Color;

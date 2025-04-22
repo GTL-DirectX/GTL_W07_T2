@@ -69,6 +69,7 @@ StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
 Texture2DArray<float> DirectionalShadowMap : register(t94);
 TextureCubeArray<float> PointShadowMap : register(t95);
 Texture2DArray<float> SpotShadowMap : register(t96);
+SamplerComparisonState ShadowSampler : register(s2);
 
 cbuffer cbLightCount : register(b0)
 {    
@@ -186,29 +187,175 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     return Lit * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess)
+float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
 {
+    float bias = 0.001;
+    
+    // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
+    float4x4 LightViewMatrix;
+    float4x4 LightProjectionMatrix;
+
+    float BiasStep = 0.000001f;
+    float MinBias = 0.0f;
+    float3 LightDirection;
+    
+    // Light (Dir -> Point -> Spot)순서 바뀌면 위험함.
+    bool bIsDirectional = (DirectionalLightsCount > LightIndex);
+    bool bIsPoint = !bIsDirectional && (DirectionalLightsCount + PointLightsCount > LightIndex);
+    bool bIsSpot = !bIsDirectional && !bIsPoint && (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex);
+
+    uint TargetIndex;
+
+    if (bIsDirectional)
+    {
+        TargetIndex = LightIndex;
+    }
+    else if (bIsPoint)
+    {
+        TargetIndex = LightIndex - DirectionalLightsCount;
+    }
+    else if (bIsSpot)
+    {
+        TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
+    }
+    else
+    {
+        return 1;
+    }
+    
+    float Result = 1;
+
+    //float2 ShadowMapTexCoord = {
+    //    0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+    //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
+    //};
+    
+    //bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+    //bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+    
+    //float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    
+    //if (IsInX || IsInY || LightDistance > 1)
+    //    return 1.0f;
+    
+    //float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
+    //float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
+    
+    //LightDistance -= TotalBias;
+    
+    //return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    
+    if (bIsPoint)
+    {
+        float ShadowSum = 0;
+        for (int i = 0; i < 6; i++)
+        {            
+            float3 LightPosition = PointLights[TargetIndex].Position;
+
+            float3 LightToPixelDirVector = normalize(WorldPosition - LightPosition);
+            
+            LightViewMatrix = PointLights[TargetIndex].ViewMatrix[i];
+            LightProjectionMatrix = PointLights[TargetIndex].ProjectionMatrix;
+
+            float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+            float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+
+            float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+            LightDistance -= bias;
+
+            // 큐브맵 샘플링
+            ShadowSum += PointShadowMap.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightToPixelDirVector, TargetIndex), // 텍스처 좌표 + TargetIndex
+                LightDistance
+            ).r;
+        }
+        Result = ShadowSum / 6.0f;
+    }
+    else
+    {
+        if (bIsDirectional)
+        {
+            LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
+            LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
+        }
+        else if (bIsSpot)
+        {
+            LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
+            LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+        }
+
+        float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+        float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+        float2 ShadowMapTexCoord = {
+            0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+            0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
+        };
+        float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+        //LightDistance -= bias;
+
+
+        if (bIsDirectional)
+        {
+            Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        }
+        else if (bIsSpot)
+        {
+            Result = SpotShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        }
+    }
+    
+    return Result;
+}
+
+float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess, out float ShadowMapLight)
+{
+    ShadowMapLight = 0;
+    uint ShadowMapLightCount = 0;
+
     float3 FinalColor = float3(0.0, 0.0, 0.0);
+
+    uint LightIndex = 0;
+
+    // Light (Dir -> Point -> Spot)순서 바뀌면 위험함.
+    for (int k = 0; k < DirectionalLightsCount; k++)
+    {
+        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLightCount++;
+        LightIndex++;
+    }
     
     for (int i = 0; i < PointLightsCount; i++)
     {
         FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLightCount++;
+        LightIndex++;
     }    
 
     for (int j = 0; j < SpotLightsCount; j++)
     {
         FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-    }
-
-    for (int k = 0; k < DirectionalLightsCount; k++)
-    {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLightCount++;
+        LightIndex++;
     }
 
     for (int l = 0; l < AmbientLightsCount; l++)
     {
         FinalColor += AmbientLights[l].AmbientColor.rgb * DiffuseColor;
     }
+
+    if (ShadowMapLightCount > 0)
+    {
+        ShadowMapLight /= ShadowMapLightCount;
+    }
+    else
+    {
+        ShadowMapLight = 1;
+    }
+    
     
     return FinalColor;
 }
