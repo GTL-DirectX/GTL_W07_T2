@@ -286,7 +286,6 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
             0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
         };
         float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-        //LightDistance -= bias;
         
         bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
         bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
@@ -321,36 +320,33 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int k = 0; k < DirectionalLightsCount; k++)
     {
         LightColor = DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
         
-        //ShadowMapLightCount++;
         LightIndex++;
     }
     
     for (int i = 0; i < PointLightsCount; i++)
     {
         LightColor = PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
         
-        //ShadowMapLightCount++;
         LightIndex++;
     }    
 
     for (int j = 0; j < SpotLightsCount; j++)
     {
         LightColor = SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
         
-        //ShadowMapLightCount++;
         LightIndex++;
     }
 
@@ -358,15 +354,6 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     {
         FinalColor += AmbientLights[l].AmbientColor.rgb * DiffuseColor;
     }
-
-    //if (ShadowMapLightCount > 0)
-    //{
-    //    ShadowMapLight /= ShadowMapLightCount;
-    //}
-    //else
-    //{
-    //    ShadowMapLight = 1;
-    //}
     
     return FinalColor;
 }
