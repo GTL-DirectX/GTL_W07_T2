@@ -301,6 +301,11 @@ HRESULT FDXDBufferManager::CreateStructuredBuffer(const FString& InKeyName, cons
         return S_OK;
     }
 
+    // if (InData.Num() == 0)
+    // {
+    //     return S_OK;
+    // }
+
     FDXDStructuredBuffer NewStructuredBuffer;
     UINT ElementCount = InData.Num();
     UINT ElementStride = sizeof(T);

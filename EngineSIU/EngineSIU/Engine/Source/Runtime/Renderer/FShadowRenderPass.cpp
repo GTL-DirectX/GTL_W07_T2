@@ -72,6 +72,14 @@ void FShadowRenderPass::ReleaseShader()
     
 }
 
+void FShadowRenderPass::UpdateShadowMapSize(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Directional, DirectionalLights.Num());
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Point, PointLights.Num());
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Spot, SpotLights.Num());
+}
+
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     BufferManager = InBufferManager;
@@ -117,10 +125,9 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType);
 
-    // TODO - ㅁㄴㅇ TextureArray
-    ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type);
+    ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
-    // TODO - ㅁㄴㅇ TextureArray
+
     auto DSV = ViewportResource->GetShadowDepthStencil(Type)->DSVs[DSVIndex];
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DSV);
 
@@ -146,12 +153,13 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Pixel);
 }
 
-void FShadowRenderPass::UpdateLightIndex(uint32 index) const
+void FShadowRenderPass::UpdateLightIndex(uint32 index, uint32 PointLightIndex) const
 {
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
     ObjectData.FarPlane = 200.0f;
+    ObjectData.PointLightIndex = PointLightIndex;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }
@@ -216,36 +224,37 @@ void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData) 
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
+    UpdateShadowMapSize(Viewport);
     int LightIndex = 0;
 
     for (; LightIndex < DirectionalLights.Num(); LightIndex++)
     {
-        // auto TargetIndex = (DirectionalLights.Num()) - LightIndex;
-
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional);    
+        auto TargetIndex = LightIndex;
+    
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, TargetIndex);    
         UpdateLightIndex(LightIndex);
         RenderMeshComponents();
     }
 
-    for (; LightIndex < DirectionalLights.Num() + PointLights.Num(); LightIndex++)
-    {
-        // auto TargetIndex = (DirectionalLights.Num() + PointLights.Num()) - LightIndex;
-        for (int32 i = 0; i < 6; i++)
-        {
-            PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, i);    
-            UpdateLightIndex(LightIndex);
-            RenderMeshComponents();
-        }
-    }
-
-    for (; LightIndex < DirectionalLights.Num() + PointLights.Num() + SpotLights.Num(); LightIndex++)
-    {
-        // auto TargetIndex = (DirectionalLights.Num() + PointLights.Num() + SpotLights.Num()) - LightIndex;
-
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot);    
-        UpdateLightIndex(LightIndex);
-        RenderMeshComponents();
-    }
+    // for (; LightIndex < DirectionalLights.Num() + PointLights.Num(); LightIndex++)
+    // {
+    //     auto TargetIndex = LightIndex - (DirectionalLights.Num());
+    //     for (int32 i = 0; i < 6; i++)
+    //     {
+    //         PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, TargetIndex + i);    
+    //         UpdateLightIndex(LightIndex, i);
+    //         RenderMeshComponents();
+    //     }
+    // }
+    //
+    // for (; LightIndex < DirectionalLights.Num() + PointLights.Num() + SpotLights.Num(); LightIndex++)
+    // {
+    //     auto TargetIndex = LightIndex - (DirectionalLights.Num() + PointLights.Num());
+    //
+    //     PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, TargetIndex);    
+    //     UpdateLightIndex(LightIndex);
+    //     RenderMeshComponents();
+    // }
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 }

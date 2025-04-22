@@ -12,7 +12,7 @@ cbuffer VSConstants : register(b1)
     uint LightIndex;
     float NearPlane; 
     float FarPlane;
-    float2 Padding;
+    uint PointLightIndex;
 }
 
 VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
@@ -30,7 +30,7 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
         uint TargetIndex = LightIndex - DirectionalLightsCount;
-        output.Pos = mul(output.Pos, PointLights[TargetIndex].ViewMatrix);
+        output.Pos = mul(output.Pos, PointLights[TargetIndex].ViewMatrix[PointLightIndex]);
         output.Pos = mul(output.Pos, PointLights[TargetIndex].ProjectionMatrix);
     }
     else if (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex)

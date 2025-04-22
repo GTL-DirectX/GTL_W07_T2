@@ -33,7 +33,7 @@ public:
 
     void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex = 0);
     
-    void UpdateLightIndex(uint32 index) const;
+    void UpdateLightIndex(uint32 index, uint32 PointLightIndex = 0) const;
     void UpdateObjectConstant(const FMatrix& WorldMatrix) const;
 
 
@@ -42,6 +42,7 @@ private:
     // Shader 관련 함수 (생성/해제 등)
     void CreateShader();
     void ReleaseShader();
+    void UpdateShadowMapSize(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;

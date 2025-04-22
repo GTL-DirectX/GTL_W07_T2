@@ -96,11 +96,11 @@ struct FDepthStencilRHI
 
 struct FShadowDepthStencilRHI
 {
-    ID3D11Texture2D* Texture2D = nullptr;
-    // TextureArray말고 일단 2D로
-    //TArray<TArray<ID3D11DepthStencilView*>> DSVs; 
+    ID3D11Texture2D* Texture2D = nullptr; 
     TArray<ID3D11DepthStencilView*> DSVs;
     ID3D11ShaderResourceView* SRV = nullptr;
+
+    uint32 ArrayCount = 0;
 
     void Release()
     {
@@ -137,7 +137,7 @@ public:
 
     HRESULT CreateResource(EResourceType Type);
     HRESULT CreateDepthStencilResource(EDepthType Type);
-    HRESULT CreateShadowDepthStencilResource(EShadowDepthType Type);
+    HRESULT CreateShadowDepthStencilResource(EShadowDepthType Type, uint32 ArrayCount);
     
     D3D11_VIEWPORT& GetD3DViewport() { return D3DViewport; }
     TMap<EResourceType, FRenderTargetRHI>& GetRenderTargets();
@@ -164,10 +164,12 @@ public:
 
     void ClearShadowDepthStencils(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 Shadow Depth Stencil View를 clear. 없는 경우 생성해서 clear.
-    void ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type);
+    void ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type, uint32 DSVIndex);
+
+    void UpdateShadowMapSize(EShadowDepthType Type, uint32 LightCount);
     
     std::array<float, 4> GetClearColor(EResourceType Type) const;
-    
+
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
