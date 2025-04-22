@@ -55,6 +55,7 @@ void FEditorViewportClient::Tick(float DeltaTime)
     UpdateEditorCameraMovement(DeltaTime);
     UpdateViewMatrix();
     UpdateProjectionMatrix();
+    UpdateCameraFrustum();
     GizmoActor->Tick(DeltaTime);
 }
 
@@ -521,7 +522,7 @@ FVector FEditorViewportClient::GetCameraLocation() const
     return OrthogonalCamera.GetLocation();
 }
 
-float FEditorViewportClient::GetCameraLearClip() const
+float FEditorViewportClient::GetCameraNearClip() const
 {
     return NearClip;
 }
@@ -586,6 +587,11 @@ void FEditorViewportClient::SetOthoSize(float InValue)
 {
     OrthoSize += InValue;
     OrthoSize = FMath::Max(OrthoSize, 0.1f);
+}
+
+void FEditorViewportClient::UpdateCameraFrustum()
+{
+    CameraFrustum.BuildFromView(this);
 }
 
 void FEditorViewportClient::LoadConfig(const TMap<FString, FString>& config)

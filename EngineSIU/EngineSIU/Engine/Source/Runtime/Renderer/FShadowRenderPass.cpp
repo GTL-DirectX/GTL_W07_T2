@@ -257,6 +257,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 
     for (; LightIndex < DirectionalLights.Num(); LightIndex++)
     {
+        // Directional
         auto TargetIndex = LightIndex;
     
         PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, TargetIndex);    
@@ -266,7 +267,8 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 
     for (; LightIndex < DirectionalLights.Num() + PointLights.Num(); LightIndex++)
     {
-        auto TargetIndex = LightIndex - (DirectionalLights.Num());
+        // PointLight
+        auto TargetIndex = (LightIndex - (DirectionalLights.Num())) * 6;
         for (int32 i = 0; i < 6; i++)
         {
             PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, TargetIndex + i);    
@@ -277,6 +279,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     
     for (; LightIndex < DirectionalLights.Num() + PointLights.Num() + SpotLights.Num(); LightIndex++)
     {
+        // SpotLight
         auto TargetIndex = LightIndex - (DirectionalLights.Num() + PointLights.Num());
     
         PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, TargetIndex);    

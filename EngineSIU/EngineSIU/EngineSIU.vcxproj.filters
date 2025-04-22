@@ -798,6 +798,8 @@
     <ClCompile Include="Engine\Source\Runtime\Windows\RawInput.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Windows\WindowsCursor.cpp" />
     <ClCompile Include="LightGridGenerator.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\DXDStructuredBuffer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraFrustum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -883,6 +885,8 @@
     <ClInclude Include="Engine\Source\Runtime\Windows\RawInput.h" />
     <ClInclude Include="Engine\Source\Runtime\Windows\WindowsCursor.h" />
     <ClInclude Include="LightGridGenerator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\DXDStructuredBuffer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraFrustum.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\SlateShader.hlsl" />
