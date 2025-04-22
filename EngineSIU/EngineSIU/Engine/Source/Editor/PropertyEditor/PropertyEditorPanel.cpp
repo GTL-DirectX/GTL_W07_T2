@@ -82,7 +82,8 @@ void PropertyEditorPanel::Render()
 
     if (ULightComponent* LightComponent = GetTargetComponent<ULightComponent>(SelectedActor, SelectedComponent))
     {
-        RenderForLightCommon(LightComponent);
+        if (!LightComponent->IsA<UAmbientLightComponent>()) // AmbientLight 는 그림자 관련 X.
+            RenderForLightCommon(LightComponent);
     }
 
     if (UAmbientLightComponent* LightComponent = GetTargetComponent<UAmbientLightComponent>(SelectedActor, SelectedComponent))
@@ -471,6 +472,8 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     // bCastShadow 토글.
     // Shadow Property 수치 조절.
 
+    ImGui::Separator();
+
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
 
     bool bCastShadow = LightComponent->IsShadowCasting();
@@ -480,7 +483,6 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
         LightComponent->SetCastShadows(bCastShadow);
     }
 
-    ImGui::Separator();
 
     //ImGui::SliderFloat;
     
@@ -504,6 +506,9 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
         LightComponent->SetShadowSharpen(ShadowSharpen);
 
     ImGui::PopStyleColor();
+
+    ImGui::Separator();
+
 }
 
 void PropertyEditorPanel::RenderForProjectileMovementComponent(UProjectileMovementComponent* ProjectileComp) const
