@@ -190,13 +190,10 @@ struct FConstantBufferDebugSphere
 struct FConstantBufferDebugCone
 {
     FVector ApexPosiiton;
-    float InnerRadius;
+    float Radius;
     
-    float OuterRadius;
     FVector Direction;
-    
-    float Height;
-    FVector Padding;
+    float Angle;
 };
 
 /// <summary>
