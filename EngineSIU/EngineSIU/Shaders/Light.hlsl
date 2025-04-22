@@ -11,6 +11,15 @@
 #define DIRECTIONAL_LIGHT   3
 #define AMBIENT_LIGHT       4
 
+
+struct FShadowInfo
+{
+    float ShadowResolutionScale;
+    float ShadowBias;
+    float ShadowSlopeBias;
+    float ShadowSharpen;
+};
+
 struct FAmbientLightInfo
 {
     float4 AmbientColor;
@@ -25,6 +34,8 @@ struct FDirectionalLightInfo
     
     row_major matrix ViewMatrix;
     row_major matrix ProjectionMatrix;
+    
+    FShadowInfo ShadowInfo;
 };
 
 struct FPointLightInfo
@@ -40,6 +51,8 @@ struct FPointLightInfo
     float Padding;
     row_major matrix ViewMatrix[6];
     row_major matrix ProjectionMatrix;
+    
+    FShadowInfo ShadowInfo;
 };
 
 struct FSpotLightInfo
@@ -59,6 +72,8 @@ struct FSpotLightInfo
 
     row_major matrix ViewMatrix;
     row_major matrix ProjectionMatrix;
+    
+    FShadowInfo ShadowInfo;
 };
 
 StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);

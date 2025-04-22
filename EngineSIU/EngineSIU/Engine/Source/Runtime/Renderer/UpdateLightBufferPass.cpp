@@ -175,6 +175,8 @@ FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDir
     // TODO : 임의값
     LightInfo.Projection = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 150);
 
+    LightInfo.ShadowInfo = GetShadowInfo(LightComp);
+
     return LightInfo;
 }
 
@@ -188,6 +190,8 @@ FPointLightInfo FUpdateLightBufferPass::GetPointLightInfo(const UPointLightCompo
     LightInfo.Intensity = LightComp->GetIntensity();
     LightInfo.Type = LightComp->GetLightType();
     LightInfo.Attenuation = LightComp->GetAttenuation();
+    LightInfo.ShadowInfo = GetShadowInfo(LightComp);
+
 
     return LightInfo;
 }
@@ -227,6 +231,20 @@ FSpotLightInfo FUpdateLightBufferPass::GetSpotLightInfo(const USpotLightComponen
     LightInfo.View = ViewMatrix;
     LightInfo.Projection = ProjectionMatrix;
 
+    LightInfo.ShadowInfo = GetShadowInfo(LightComp);
+
     return LightInfo;
+}
+
+FShadowInfo FUpdateLightBufferPass::GetShadowInfo(const ULightComponent* LightComp) const
+{
+    FShadowInfo ShadowInfo = {};
+
+    ShadowInfo.ShadowResolutionScale = LightComp->GetShadowResolutionScale();
+    ShadowInfo.ShadowBias = LightComp->GetShadowBias();
+    ShadowInfo.ShadowSlopeBias = LightComp->GetShadowSlopeBias();
+    ShadowInfo.ShadowSharpen = LightComp->GetShadowSharpen();
+    
+    return ShadowInfo;
 }
 
