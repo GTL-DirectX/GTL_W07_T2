@@ -133,7 +133,7 @@ public:
     void Initialize(uint32 InWidth, uint32 InHeight);
     void Resize(uint32 NewWidth, uint32 NewHeight);
 
-    void Release();
+    void Release(bool bIsReSize = false);
 
     HRESULT CreateResource(EResourceType Type);
     HRESULT CreateDepthStencilResource(EDepthType Type);
