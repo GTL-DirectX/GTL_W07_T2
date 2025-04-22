@@ -117,7 +117,7 @@ void FStaticMeshRenderPass::CreateSampler()
     comparisonSamplerDesc.BorderColor[2] = 1.0f;
     comparisonSamplerDesc.BorderColor[3] = 1.0f;
     comparisonSamplerDesc.MinLOD = 0.f;
-    comparisonSamplerDesc.MaxLOD = 1.f;
+    comparisonSamplerDesc.MaxLOD = 0.f;
     comparisonSamplerDesc.MipLODBias = 0.f;
     comparisonSamplerDesc.MaxAnisotropy = 0;
     comparisonSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;

@@ -153,7 +153,6 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     }
     /***********************임시 추후 수정 필요/***********************/
 
-    
     ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
 

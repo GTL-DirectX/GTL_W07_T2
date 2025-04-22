@@ -239,13 +239,6 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
     }
     
     float Result = 1;
-
-    //float2 ShadowMapTexCoord = {
-    //    0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
-    //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
-    //};
-    
-    
     
     //float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
     //float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
@@ -253,6 +246,9 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
     //LightDistance -= TotalBias;
     
     //return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+
+    //PSM
+    //WorldPosition = mul(float4(WorldPosition, 1.0f), InvViewMatrix);
     
     if (bIsPoint)
     {

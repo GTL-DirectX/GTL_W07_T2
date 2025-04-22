@@ -76,7 +76,6 @@ void FUpdateLightBufferPass::ClearRenderArr()
     AmbientLights.Empty();
 }
 
-
 void FUpdateLightBufferPass::UpdateLightBuffer() const
 {
     TArray<FDirectionalLightInfo> DirectionalLightInfo = {};
