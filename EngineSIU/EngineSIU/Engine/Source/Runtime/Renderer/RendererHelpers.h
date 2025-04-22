@@ -7,12 +7,17 @@ enum class EShaderSRVSlot : int8
     SRV_DirectionalLight = 91,
     SRV_PointLight = 92,
     SRV_SpotLight = 93,
+
+    SRV_DirectionalShadowMap = 94,
+    SRV_PointShadowMap = 95,
+    SRV_SpotShadowMap = 96,
+    
     SRV_SceneDepth = 99,
     SRV_Scene = 100,
     SRV_PostProcess = 101,
     SRV_EditorOverlay = 102,
     SRV_Fog = 103,
-    SRV_Shadow = 104,   // TODO: Temp Shadow 여러개
+
     SRV_ShadowMapVisualization = 105,
     
     SRV_Viewport = 120,

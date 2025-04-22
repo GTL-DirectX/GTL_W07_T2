@@ -7,6 +7,10 @@
 #include "Define.h"
 
 
+enum class EShadowDepthType : uint8;
+class USpotLightComponent;
+class UPointLightComponent;
+class UAmbientLightComponent;
 class UDirectionalLightComponent;
 class UStaticMeshComponent;
 
@@ -27,22 +31,30 @@ public:
 
     virtual void ClearRenderArr() override;
 
-    void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport);
-
-    void UpdateLightIndex(uint32 index) const;
+    void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex = 0);
+    
+    void UpdateLightIndex(uint32 index, uint32 PointLightIndex = 0) const;
     void UpdateObjectConstant(const FMatrix& WorldMatrix) const;
 
+
+private:
+    void RenderMeshComponents();
     // Shader 관련 함수 (생성/해제 등)
     void CreateShader();
     void ReleaseShader();
+    void UpdateShadowMapSize(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;
+    
+    TArray<UDirectionalLightComponent*> DirectionalLights;
+    TArray<UPointLightComponent*> PointLights;
+    TArray<USpotLightComponent*> SpotLights;
+
+private:
     // TODO : 기존의 StaticMeshComponents를 ShadowCaster, ShadowReceiver로 분리
     TArray<UStaticMeshComponent*> ShadowCasters; // 그림자 캐스팅하는 StaticMesh
     TArray<UStaticMeshComponent*> ShadowReceivers; // 그림자 받는 StaticMesh
-
-    TArray<UDirectionalLightComponent*> DirectionalLights;
     
     ID3D11InputLayout* InputLayout = nullptr;
     

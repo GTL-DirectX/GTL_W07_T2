@@ -403,7 +403,7 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
         auto srv = GEngineLoop.GetLevelEditor()
             ->GetActiveViewportClient()
             ->GetViewportResource()
-            ->GetDepthStencil(EDepthType::EDT_ShadowDepth)
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
             ->SRV;
 
         ImTextureID texId = (ImTextureID)srv;

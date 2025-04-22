@@ -31,8 +31,15 @@ enum class EDepthType : uint8
 {
     EDT_Depth,
     EDT_GizmosDepth,
-    EDT_ShadowDepth,
-    EVL_MAX,
+    EDT_MAX,
+};
+
+enum class EShadowDepthType : uint8
+{
+    ESDT_Directional,
+    ESDT_Point,
+    ESDT_Spot,
+    ESDT_MAX,
 };
 
 struct FRenderTargetRHI
@@ -87,6 +94,36 @@ struct FDepthStencilRHI
     }
 };
 
+struct FShadowDepthStencilRHI
+{
+    ID3D11Texture2D* Texture2D = nullptr; 
+    TArray<ID3D11DepthStencilView*> DSVs;
+    ID3D11ShaderResourceView* SRV = nullptr;
+
+    uint32 ArrayCount = 0;
+
+    void Release()
+    {
+        if (SRV)
+        {
+            SRV->Release();
+            SRV = nullptr;
+        }
+
+        for (auto DSV : DSVs)
+        {
+            DSV->Release();
+        }
+        DSVs.Empty();
+        
+        if (Texture2D)
+        {
+            Texture2D->Release();
+            Texture2D = nullptr;
+        }
+    }
+};
+
 class FViewportResource
 {
 public:
@@ -100,42 +137,53 @@ public:
 
     HRESULT CreateResource(EResourceType Type);
     HRESULT CreateDepthStencilResource(EDepthType Type);
+    HRESULT CreateShadowDepthStencilResource(EShadowDepthType Type, uint32 ArrayCount);
     
     D3D11_VIEWPORT& GetD3DViewport() { return D3DViewport; }
     TMap<EResourceType, FRenderTargetRHI>& GetRenderTargets();
     TMap<EDepthType, FDepthStencilRHI>& GetDepthStencils();
+    TMap<EShadowDepthType, FShadowDepthStencilRHI>& GetShadowDepthStencils();
 
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
     FRenderTargetRHI* GetRenderTarget(EResourceType Type);
     FDepthStencilRHI* GetDepthStencil(EDepthType Type);
+    FShadowDepthStencilRHI* GetShadowDepthStencil(EShadowDepthType Type);
 
     bool HasRenderTarget(EResourceType Type) const;
     bool HasDepthStencil(EDepthType Type) const;
+    bool HasShadowDepthStencil(EShadowDepthType Type) const;
 
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearRenderTargets(ID3D11DeviceContext* DeviceContext);
-
     // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
     void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
 
     void ClearDepthStencils(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 Depth Stencil 뷰를 clear. 없는 경우 생성해서 clear.
     void ClearDepthStencil(ID3D11DeviceContext* DeviceContext, EDepthType Type);
+
+    void ClearShadowDepthStencils(ID3D11DeviceContext* DeviceContext);
+    // 지정한 타입의 Shadow Depth Stencil View를 clear. 없는 경우 생성해서 clear.
+    void ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type, uint32 DSVIndex);
+
+    void UpdateShadowMapSize(EShadowDepthType Type, uint32 LightCount);
     
     std::array<float, 4> GetClearColor(EResourceType Type) const;
-    
+
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
     TMap<EResourceType, FRenderTargetRHI> RenderTargets;
-
     TMap<EDepthType, FDepthStencilRHI> DepthStencils;
-
-    void ReleaseDepthStencilResources();
-    void ReleaseDepthStencilResource(EDepthType Type);
+    TMap<EShadowDepthType, FShadowDepthStencilRHI> ShadowDepthStencils;   // TODO: Viewport마다 동일한 Shadow를 여러번 그린다.
+    
     void ReleaseResources();
     void ReleaseResource(EResourceType Type);
+    void ReleaseDepthStencilResources();
+    void ReleaseDepthStencilResource(EDepthType Type);
+    void ReleaseShadowResources();
+    void ReleaseShadowResource(EShadowDepthType Type);
 
     /**
      * ClearColors 맵에는 모든 EResourceType에 대응하는 색상을

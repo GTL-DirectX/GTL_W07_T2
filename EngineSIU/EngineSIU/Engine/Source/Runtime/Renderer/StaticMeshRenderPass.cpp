@@ -333,8 +333,25 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     PrepareRenderState(Viewport);
 
     Graphics->DeviceContext->PSSetSamplers(2, 1, &ShadowSampler);
+
+    auto DirectionalRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional);
+    auto PointRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point);
+    auto SpotRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot);
+    
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), 1, &DirectionalRHI->SRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), 1, &PointRHI->SRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), 1, &SpotRHI->SRV);
+    
     // TODO: Temp Shadow 여러개
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, &ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->SRV);
+    //ㅁㄴㅇ
+    //TArray<ID3D11ShaderResourceView*> AllDirectionalLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional);
+    //TArray<ID3D11ShaderResourceView*> AllPointLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point);
+    //TArray<ID3D11ShaderResourceView*> AllSpotLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot);
+    
+    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), AllDirectionalLightSRV.Num(), AllDirectionalLightSRV.GetData());
+    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), AllPointLightSRV.Num(), AllPointLightSRV.GetData());
+    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), AllSpotLightSRV.Num(), AllSpotLightSRV.GetData());
+
 
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -382,7 +399,9 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     }
 
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Shadow), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), 1, NullSRV);
     
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);

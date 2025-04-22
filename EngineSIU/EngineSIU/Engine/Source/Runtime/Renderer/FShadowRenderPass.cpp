@@ -16,6 +16,9 @@
 #include "D3D11RHI/DXDShaderManager.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
 #include "Types/ShadowTypes.h"
 #include "Runtime/Renderer/RendererHelpers.h"
 
@@ -69,6 +72,14 @@ void FShadowRenderPass::ReleaseShader()
     
 }
 
+void FShadowRenderPass::UpdateShadowMapSize(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Directional, DirectionalLights.Num());
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Point, PointLights.Num());
+    ViewportResource->UpdateShadowMapSize(EShadowDepthType::ESDT_Spot, SpotLights.Num());
+}
+
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
 {
     BufferManager = InBufferManager;
@@ -80,51 +91,74 @@ void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphics
 
 void FShadowRenderPass::PrepareRender()
 {
-    for (const auto iter : TObjectRange<UStaticMeshComponent>())
+    for (const auto iter : TObjectRange<USceneComponent>())
     {
-        if (!Cast<UGizmoBaseComponent>(iter) && iter->GetWorld() == GEngine->ActiveWorld)
+        if (iter->GetWorld() != GEngine->ActiveWorld)
         {
-            StaticMeshComponents.Add(iter);
+            continue;
+        }
+        if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(iter))
+        {
+            if (!Cast<UGizmoBaseComponent>(iter))
+            {
+                StaticMeshComponents.Add(StaticMeshComp);
+            }
+        }
+        else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
+        {
+            PointLights.Add(PointLight);
+        }
+        else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
+        {
+            SpotLights.Add(SpotLight);
+        }
+        else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(iter))
+        {
+            DirectionalLights.Add(DirectionalLight);
         }
     }
 }
 
-void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport) 
+void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex)
 {
-    constexpr EResourceType ResourceType = EResourceType::ERT_ShadowMapVisualization;
+    constexpr EResourceType VisualizationResourceType = EResourceType::ERT_ShadowMapVisualization;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-
-    // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
-    ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
-    ViewportResource->ClearRenderTarget(Graphics->DeviceContext, EResourceType::ERT_ShadowMapVisualization);
+    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType);
     
     /***********************임시 추후 수정 필요/***********************/
-    ID3D11DepthStencilView* DepthStencilView = ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV;
+    if (ViewportResource->GetShadowDepthStencil(Type)->ArrayCount > 0)
+    {
+        ID3D11DepthStencilView* DepthStencilView = ViewportResource->GetShadowDepthStencil(Type)->DSVs[0];
 
-    ID3D11Resource* depthResource = nullptr;
-    DepthStencilView->GetResource(&depthResource);
+        ID3D11Resource* depthResource = nullptr;
+        DepthStencilView->GetResource(&depthResource);
 
-    ID3D11Texture2D* depthTexture = nullptr;
-    depthResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&depthTexture);
-    depthResource->Release(); // QueryInterface했으므로 Release 필요
+        ID3D11Texture2D* depthTexture = nullptr;
+        depthResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&depthTexture);
+        depthResource->Release(); // QueryInterface했으므로 Release 필요
 
-    D3D11_TEXTURE2D_DESC depthDesc;
-    depthTexture->GetDesc(&depthDesc);
-    depthTexture->Release(); // 사용 후 Release
+        D3D11_TEXTURE2D_DESC depthDesc;
+        depthTexture->GetDesc(&depthDesc);
+        depthTexture->Release(); // 사용 후 Release
 
-    D3D11_VIEWPORT ShadowViewport;
+        D3D11_VIEWPORT ShadowViewport;
 
-    ShadowViewport.Width = (FLOAT)depthDesc.Width;
-    ShadowViewport.Height = (FLOAT)depthDesc.Height;
-    ShadowViewport.MinDepth = 0.0f;
-    ShadowViewport.MaxDepth = 1.0f;
-    ShadowViewport.TopLeftX = 0;
-    ShadowViewport.TopLeftY = 0;
+        ShadowViewport.Width = (FLOAT)depthDesc.Width;
+        ShadowViewport.Height = (FLOAT)depthDesc.Height;
+        ShadowViewport.MinDepth = 0.0f;
+        ShadowViewport.MaxDepth = 1.0f;
+        ShadowViewport.TopLeftX = 0;
+        ShadowViewport.TopLeftY = 0;
+        Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+    }
     /***********************임시 추후 수정 필요/***********************/
 
-    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilView);
+    
+    ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex);
+    ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
+
+    auto DSV = ViewportResource->GetShadowDepthStencil(Type)->DSVs[DSVIndex];
+    Graphics->DeviceContext->OMSetRenderTargets(0, &RenderTargetRHI->RTV, DSV);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -148,12 +182,13 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Pixel);
 }
 
-void FShadowRenderPass::UpdateLightIndex(uint32 index) const
+void FShadowRenderPass::UpdateLightIndex(uint32 index, uint32 PointLightIndex) const
 {
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
     ObjectData.FarPlane = 30.0f;
+    ObjectData.PointLightIndex = PointLightIndex;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }
@@ -164,6 +199,30 @@ void FShadowRenderPass::UpdateObjectConstant(const FMatrix& WorldMatrix) const
     ObjectData.WorldMatrix = WorldMatrix;
     
     BufferManager->UpdateConstantBuffer(TEXT("FObjectConstantBuffer"), ObjectData);
+}
+
+void FShadowRenderPass::RenderMeshComponents()
+{
+    // Draw Component
+    for (UStaticMeshComponent* Comp : StaticMeshComponents)
+    {
+        if (!Comp || !Comp->GetStaticMesh())
+        {
+            continue;
+        }
+    
+        OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
+        if (RenderData == nullptr)
+        {
+            continue;
+        }
+                
+        FMatrix WorldMatrix = Comp->GetWorldMatrix();
+        
+        UpdateObjectConstant(WorldMatrix);
+        
+        RenderPrimitive(RenderData);
+    }
 }
 
 void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData) const
@@ -194,39 +253,46 @@ void FShadowRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData) 
 
 void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    // TODO: Temp - Light만큼 DSV 그리기
-    for (int i = 0; i < 1; i++)
+    UpdateShadowMapSize(Viewport);
+    int LightIndex = 0;
+
+    for (; LightIndex < DirectionalLights.Num(); LightIndex++)
     {
-        PrepareRenderState(Viewport);
+        auto TargetIndex = LightIndex;
     
-        UpdateLightIndex(i);
-    
-        // Draw Component
-        for (UStaticMeshComponent* Comp : StaticMeshComponents)
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, TargetIndex);    
+        UpdateLightIndex(LightIndex);
+        RenderMeshComponents();
+    }
+
+    for (; LightIndex < DirectionalLights.Num() + PointLights.Num(); LightIndex++)
+    {
+        auto TargetIndex = LightIndex - (DirectionalLights.Num());
+        for (int32 i = 0; i < 6; i++)
         {
-            if (!Comp || !Comp->GetStaticMesh())
-            {
-                continue;
-            }
-    
-            OBJ::FStaticMeshRenderData* RenderData = Comp->GetStaticMesh()->GetRenderData();
-            if (RenderData == nullptr)
-            {
-                continue;
-            }
-                
-            FMatrix WorldMatrix = Comp->GetWorldMatrix();
-        
-            UpdateObjectConstant(WorldMatrix);
-        
-            RenderPrimitive(RenderData);
+            PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, TargetIndex + i);    
+            UpdateLightIndex(LightIndex, i);
+            RenderMeshComponents();
         }
+    }
+    
+    for (; LightIndex < DirectionalLights.Num() + PointLights.Num() + SpotLights.Num(); LightIndex++)
+    {
+        auto TargetIndex = LightIndex - (DirectionalLights.Num() + PointLights.Num());
+    
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, TargetIndex);    
+        UpdateLightIndex(LightIndex);
+        RenderMeshComponents();
     }
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
 }
 
 void FShadowRenderPass::ClearRenderArr()
 {
     StaticMeshComponents.Empty();
+    PointLights.Empty();
+    SpotLights.Empty();
+    DirectionalLights.Empty();
 }
