@@ -4,6 +4,8 @@
 #include "Container/Set.h"
 
 #include "Define.h"
+#include "FShadowRenderPass.h"
+#include "RendererHelpers.h"
 
 class FDXDShaderManager;
 class UWorld;
@@ -46,6 +48,10 @@ public:
     void CreateSampler();
 
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
+
+private:
+    void PSSetShaderResources(FViewportResource* ViewportResource, EShaderSRVSlot ShaderSRVSlot, EShadowDepthType ShadowDepthType, EShadowResolutionLevel
+                              ::Type ShadowResolutionLevel) const;
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;

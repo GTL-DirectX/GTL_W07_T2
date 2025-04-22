@@ -579,44 +579,32 @@ void FEditorRenderPass::RenderPointlightInstanced()
     Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Sphere.Vertex, &Resources.Primitives.Sphere.VertexStride, &offset);
     Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Sphere.Index, DXGI_FORMAT_R32_UINT, 0);
 
-    // 위치랑 bounding box 크기 정보 가져오기
-    TArray<FConstantBufferDebugSphere> BufferAll;
-    for (ULightComponentBase* LightComp : Resources.Components.Light)
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (!EditorEngine)
     {
-        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
-        {
-            FConstantBufferDebugSphere b;
-            b.Position = PointLightComp->GetWorldLocation();
-            b.Radius = PointLightComp->GetRadius();
-            BufferAll.Add(b);
-        }
-
+        return;
     }
+
+    if (!EditorEngine->GetSelectedActor())
+    {
+        return;
+    }
+
+    UPointLightComponent* PointLightComp = EditorEngine->GetSelectedActor()->GetComponentByClass<UPointLightComponent>();
+
+    if (!PointLightComp)
+    {
+        return;
+    }
+
+    FConstantBufferDebugSphere PointLightConeBuffer;
+
+    PointLightConeBuffer.Position = PointLightComp->GetWorldLocation();
+    PointLightConeBuffer.Radius = PointLightComp->GetRadius();
 
     PrepareConstantbufferPointlight();
-    int BufferIndex = 0;
-    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
-    {
-        TArray<FConstantBufferDebugSphere> SubBuffer;
-        for (int j = 0; j < ConstantBufferSizeAABB; ++j)
-        {
-            if (BufferIndex < BufferAll.Num())
-            {
-                SubBuffer.Add(BufferAll[BufferIndex]);
-                ++BufferIndex;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        if (SubBuffer.Num() > 0)
-        {
-            UdpateConstantbufferPointlightInstanced(SubBuffer);
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.NumIndices, SubBuffer.Num(), 0, 0, 0);
-        }
-    }
+    UdpateConstantbufferPointlightInstanced({ PointLightConeBuffer });
+    Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.NumIndices, 1, 0, 0, 0);
 }
 
 void FEditorRenderPass::PrepareConstantbufferPointlight()
@@ -649,52 +637,43 @@ void FEditorRenderPass::UdpateConstantbufferPointlightInstanced(TArray<FConstant
 void FEditorRenderPass::RenderSpotlightInstanced()
 {
     SetShaderAndPrepare(L"ConeVS", L"ConePS", Resources.Shaders.Cone);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Cone.Vertex, &Resources.Primitives.Cone.VertexStride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Cone.Index, DXGI_FORMAT_R32_UINT, 0);
 
-    // 위치랑 bounding box 크기 정보 가져오기
-    TArray<FConstantBufferDebugCone> BufferAll;
-    for (ULightComponentBase* LightComp : Resources.Components.Light)
+    UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+    if (!EditorEngine)
     {
-        if (USpotLightComponent* SpotComp = Cast<USpotLightComponent>(LightComp))
-        {
-            FConstantBufferDebugCone b;
-            b.ApexPosiiton = SpotComp->GetWorldLocation();
-            b.InnerRadius = SpotComp->GetRadius() * FMath::Tan(FMath::DegreesToRadians(SpotComp->GetInnerAngle()) * 0.5);
-            b.OuterRadius = SpotComp->GetRadius() * FMath::Tan(FMath::DegreesToRadians(SpotComp->GetOuterAngle()) * 0.5);
-            b.Height = SpotComp->GetRadius();
-            b.Direction = SpotComp->GetDirection();
-            BufferAll.Add(b);
-            BufferAll.Add(b);
-        }
+        return;
     }
+
+    if (!EditorEngine->GetSelectedActor())
+    {
+        return;
+    }
+
+    USpotLightComponent* SpotLightComp = EditorEngine->GetSelectedActor()->GetComponentByClass<USpotLightComponent>();
+
+    if (!SpotLightComp)
+    {
+        return;
+    }
+
+    
+    FConstantBufferDebugCone SpotLightConeBuffer;
+    SpotLightConeBuffer.ApexPosiiton = SpotLightComp->GetWorldLocation();
+    SpotLightConeBuffer.Radius = SpotLightComp->GetRadius();
+    SpotLightConeBuffer.Direction = SpotLightComp->GetDirection();
+    SpotLightConeBuffer.Angle = FMath::DegreesToRadians(SpotLightComp->GetInnerAngle() * 0.5f);
 
     PrepareConstantbufferSpotlight();
-    int BufferIndex = 0;
-    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCone) * ConstantBufferSizeCone; ++i)
-    {
-        TArray<FConstantBufferDebugCone> SubBuffer;
-        for (int j = 0; j < ConstantBufferSizeCone; ++j)
-        {
-            if (BufferIndex < BufferAll.Num())
-            {
-                SubBuffer.Add(BufferAll[BufferIndex]);
-                ++BufferIndex;
-            }
-            else
-            {
-                break;
-            }
-        }
+    UdpateConstantbufferSpotlightInstanced({ SpotLightConeBuffer });
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Graphics->DeviceContext->DrawInstanced(136, 2, 0, 0);
 
-        if (SubBuffer.Num() > 0)
-        {
-            UdpateConstantbufferSpotlightInstanced(SubBuffer);
+    SpotLightConeBuffer.Angle = FMath::DegreesToRadians(SpotLightComp->GetOuterAngle() * 0.5f);
 
-            Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Cone.NumIndices, SubBuffer.Num(), 0, 0, 0);
-        }
-    }
+    PrepareConstantbufferSpotlight();
+    UdpateConstantbufferSpotlightInstanced({ SpotLightConeBuffer });
+    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Graphics->DeviceContext->DrawInstanced(136, 2, 0, 0);
 }
 
 void FEditorRenderPass::PrepareConstantbufferSpotlight()

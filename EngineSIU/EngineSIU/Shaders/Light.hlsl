@@ -12,12 +12,15 @@
 #define AMBIENT_LIGHT       4
 
 
+
 struct FShadowInfo
 {
     float ShadowResolutionScale;
     float ShadowBias;
     float ShadowSlopeBias;
     float ShadowSharpen;
+    uint ShadowResolutionLevel;
+    float3 Padding;
 };
 
 struct FAmbientLightInfo
@@ -76,14 +79,38 @@ struct FSpotLightInfo
     FShadowInfo ShadowInfo;
 };
 
-StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);
-StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t91);
-StructuredBuffer<FPointLightInfo> PointLights : register(t92);
-StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
+StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t60);
+StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t61);
+StructuredBuffer<FPointLightInfo> PointLights : register(t62);
+StructuredBuffer<FSpotLightInfo> SpotLights : register(t63);
 
-Texture2DArray<float> DirectionalShadowMap : register(t94);
-TextureCubeArray<float> PointShadowMap : register(t95);
-Texture2DArray<float> SpotShadowMap : register(t96);
+Texture2DArray<float> DirectionalShadowMapLevel1 : register(t70);
+Texture2DArray<float> DirectionalShadowMapLevel2 : register(t71);
+Texture2DArray<float> DirectionalShadowMapLevel3 : register(t72);
+Texture2DArray<float> DirectionalShadowMapLevel4 : register(t73);
+Texture2DArray<float> DirectionalShadowMapLevel5 : register(t74);
+Texture2DArray<float> DirectionalShadowMapLevel6 : register(t75);
+Texture2DArray<float> DirectionalShadowMapLevel7 : register(t76);
+Texture2DArray<float> DirectionalShadowMapLevel8 : register(t77);
+
+TextureCubeArray<float> PointShadowMapLevel1 : register(t80);
+TextureCubeArray<float> PointShadowMapLevel2 : register(t81);
+TextureCubeArray<float> PointShadowMapLevel3 : register(t82);
+TextureCubeArray<float> PointShadowMapLevel4 : register(t83);
+TextureCubeArray<float> PointShadowMapLevel5 : register(t84);
+TextureCubeArray<float> PointShadowMapLevel6 : register(t85);
+TextureCubeArray<float> PointShadowMapLevel7 : register(t86);
+TextureCubeArray<float> PointShadowMapLevel8 : register(t87);
+
+Texture2DArray<float> SpotShadowMapLevel1 : register(t90);
+Texture2DArray<float> SpotShadowMapLevel2 : register(t91);
+Texture2DArray<float> SpotShadowMapLevel3 : register(t92);
+Texture2DArray<float> SpotShadowMapLevel4 : register(t93);
+Texture2DArray<float> SpotShadowMapLevel5 : register(t94);
+Texture2DArray<float> SpotShadowMapLevel6 : register(t95);
+Texture2DArray<float> SpotShadowMapLevel7 : register(t96);
+Texture2DArray<float> SpotShadowMapLevel8 : register(t97);
+
 SamplerComparisonState ShadowSampler : register(s2);
 
 cbuffer cbLightCount : register(b0)
@@ -205,10 +232,6 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
 float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
 {
     float bias = 0.001;
-    
-    // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
-    float4x4 LightViewMatrix;
-    float4x4 LightProjectionMatrix;
 
     float BiasStep = 0.000001f;
     float MinBias = 0.0f;
@@ -282,30 +305,102 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
         //float refDepth = clipPos.z / clipPos.w - bias;
         float refDepth = clipPos.z / clipPos.w;
 
-        // SampleCmpLevelZero 으로 비교
-        float shadow = PointShadowMap.SampleCmpLevelZero(
-            ShadowSampler,
-            float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
-            refDepth
-        ).r;
-
-        Result = shadow;
+        if (p.ShadowInfo.ShadowResolutionLevel == 1)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel1.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 2)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel2.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 3)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel3.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 4)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel4.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 5)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel5.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 6)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel6.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 7)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel7.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else if (p.ShadowInfo.ShadowResolutionLevel == 8)
+        {
+            // SampleCmpLevelZero 으로 비교
+            Result = PointShadowMapLevel8.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+                refDepth
+            ).r;
+        }
+        else
+        {
+            return 1;
+        }
     }
     else
     {
+        float4 LightViewPos;
+        float4 LightClipSpacePos;
         if (bIsDirectional)
         {
-            LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
-            LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
+            float4x4 LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
+            float4x4 LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
+            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+            LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
         }
         else if (bIsSpot)
         {
-            LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
-            LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+            float4x4 LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
+            float4x4 LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+            LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
         }
 
-        float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
-        float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
         float2 ShadowMapTexCoord = {
             0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
             0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
@@ -320,11 +415,85 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
 
         if (bIsSpot)
         {
-            Result = SpotShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            FSpotLightInfo LightInfo = SpotLights[TargetIndex];
+
+            if (LightInfo.ShadowInfo.ShadowResolutionLevel == 1)
+            {
+                Result = SpotShadowMapLevel1.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 2)
+            {
+                Result = SpotShadowMapLevel2.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 3)
+            {
+                Result = SpotShadowMapLevel3.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 4)
+            {
+                Result = SpotShadowMapLevel4.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 5)
+            {
+                Result = SpotShadowMapLevel5.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 6)
+            {
+                Result = SpotShadowMapLevel6.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 7)
+            {
+                Result = SpotShadowMapLevel7.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 8)
+            {
+                Result = SpotShadowMapLevel8.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else
+            {
+                return 1;
+            }
         }
         else if (bIsDirectional)
         {
-            Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            FDirectionalLightInfo LightInfo = DirectionalLights[TargetIndex];
+
+            if (LightInfo.ShadowInfo.ShadowResolutionLevel == 1)
+            {
+                Result = DirectionalShadowMapLevel1.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 2)
+            {
+                Result = DirectionalShadowMapLevel2.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 3)
+            {
+                Result = DirectionalShadowMapLevel3.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 4)
+            {
+                Result = DirectionalShadowMapLevel4.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 5)
+            {
+                Result = DirectionalShadowMapLevel5.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 6)
+            {
+                Result = DirectionalShadowMapLevel6.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 7)
+            {
+                Result = DirectionalShadowMapLevel7.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else if (LightInfo.ShadowInfo.ShadowResolutionLevel == 8)
+            {
+                Result = DirectionalShadowMapLevel8.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+            }
+            else
+            {
+                return 1;
+            }
         }
     }
     

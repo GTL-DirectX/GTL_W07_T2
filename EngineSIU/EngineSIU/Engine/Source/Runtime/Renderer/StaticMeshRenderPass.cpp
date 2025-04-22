@@ -5,9 +5,7 @@
 #include "EngineLoop.h"
 #include "World/World.h"
 
-#include "RendererHelpers.h"
 #include "UnrealClient.h"
-#include "Math/JungleMath.h"
 
 #include "UObject/UObjectIterator.h"
 #include "UObject/Casts.h"
@@ -154,6 +152,14 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex ViewModeIndex)
         PixelShader = ShaderManager->GetPixelShaderByKey(L"PHONG_StaticMeshPixelShader");
         UpdateLitUnlitConstant(0);
         break;
+    }
+}
+
+void FStaticMeshRenderPass::PSSetShaderResources(FViewportResource* ViewportResource, EShaderSRVSlot ShaderSRVSlot, EShadowDepthType ShadowDepthType, EShadowResolutionLevel::Type ShadowResolutionLevel) const
+{
+    if (ViewportResource->HasShadowDepthStencil(ShadowDepthType, ShadowResolutionLevel))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(ShaderSRVSlot), 1, &ViewportResource->GetShadowDepthStencil(ShadowDepthType, ShadowResolutionLevel)->SRV);
     }
 }
 
@@ -334,24 +340,33 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
 
     Graphics->DeviceContext->PSSetSamplers(2, 1, &ShadowSampler);
 
-    auto DirectionalRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional);
-    auto PointRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point);
-    auto SpotRHI = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot);
-    
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), 1, &DirectionalRHI->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), 1, &PointRHI->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), 1, &SpotRHI->SRV);
-    
-    // TODO: Temp Shadow 여러개
-    //ㅁㄴㅇ
-    //TArray<ID3D11ShaderResourceView*> AllDirectionalLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional);
-    //TArray<ID3D11ShaderResourceView*> AllPointLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point);
-    //TArray<ID3D11ShaderResourceView*> AllSpotLightSRV = ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot);
-    
-    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), AllDirectionalLightSRV.Num(), AllDirectionalLightSRV.GetData());
-    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), AllPointLightSRV.Num(), AllPointLightSRV.GetData());
-    // Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), AllSpotLightSRV.Num(), AllSpotLightSRV.GetData());
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel1, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::UltraLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel2, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::VeryLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel3, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::Low);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel4, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::Medium);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel5, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::High);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel6, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::VeryHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel7, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::UltraHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_DirectionalShadowMapLevel8, EShadowDepthType::ESDT_Directional, EShadowResolutionLevel::Extreme);
 
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel1, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::UltraLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel2, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::VeryLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel3, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::Low);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel4, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::Medium);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel5, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::High);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel6, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::VeryHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel7, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::UltraHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_PointShadowMapLevel8, EShadowDepthType::ESDT_Point, EShadowResolutionLevel::Extreme);
+
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel1, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::UltraLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel2, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::VeryLow);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel3, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::Low);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel4, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::Medium);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel5, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::High);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel6, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::VeryHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel7, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::UltraHigh);
+    PSSetShaderResources(ViewportResource, EShaderSRVSlot::SRV_SpotShadowMapLevel8, EShadowDepthType::ESDT_Spot, EShadowResolutionLevel::Extreme);
+    
 
     for (UStaticMeshComponent* Comp : StaticMeshComponents)
     {
@@ -399,9 +414,32 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     }
 
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap), 1, NullSRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap), 1, NullSRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel1), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel2), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel3), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel4), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel5), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel6), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel7), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMapLevel8), 1, NullSRV);
+
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel1), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel2), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel3), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel4), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel5), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel6), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel7), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMapLevel8), 1, NullSRV);
+
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel1), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel2), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel3), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel4), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel5), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel6), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel7), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMapLevel8), 1, NullSRV);
     
     // 렌더 타겟 해제
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);

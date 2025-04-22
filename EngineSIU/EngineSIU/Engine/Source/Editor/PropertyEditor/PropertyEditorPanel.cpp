@@ -505,6 +505,10 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     if (ImGui::SliderFloat("ShadowSharpen", &ShadowSharpen, 0.0f, 5.0f, "%.3f"))
         LightComponent->SetShadowSharpen(ShadowSharpen);
 
+    int32 ShadowLevel = LightComponent->GetShadowLevel();
+    if (ImGui::SliderInt("Shadow Resolution Level", &ShadowLevel, EShadowResolutionLevel::UltraLow, EShadowResolutionLevel::Extreme))
+        LightComponent->SetShadowLevel(ShadowLevel);
+    
     ImGui::PopStyleColor();
 
     ImGui::Separator();
