@@ -245,13 +245,7 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
     //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
     //};
     
-    //bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
-    //bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
     
-    //float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-    
-    //if (IsInX || IsInY || LightDistance > 1)
-    //    return 1.0f;
     
     //float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
     //float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
@@ -308,15 +302,20 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
         };
         float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
         //LightDistance -= bias;
+        
+        bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+        bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+    
+        if (IsInX || IsInY || LightDistance > 1)
+            return 1.0f;
 
-
-        if (bIsDirectional)
-        {
-            Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
-        }
-        else if (bIsSpot)
+        if (bIsSpot)
         {
             Result = SpotShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        }
+        else if (bIsDirectional)
+        {
+            Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
         }
     }
     
@@ -328,6 +327,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     ShadowMapLight = 0;
     uint ShadowMapLightCount = 0;
 
+    float3 LightColor = float3(0.0, 0.0, 0.0);
     float3 FinalColor = float3(0.0, 0.0, 0.0);
 
     uint LightIndex = 0;
@@ -335,25 +335,37 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     // Light (Dir -> Point -> Spot)순서 바뀌면 위험함.
     for (int k = 0; k < DirectionalLightsCount; k++)
     {
-        FinalColor += DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        LightColor = DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
         ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
-        ShadowMapLightCount++;
+        
+        LightColor *= ShadowMapLight;
+        FinalColor += LightColor;
+        
+        //ShadowMapLightCount++;
         LightIndex++;
     }
     
     for (int i = 0; i < PointLightsCount; i++)
     {
-        FinalColor += PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        LightColor = PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
         ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
-        ShadowMapLightCount++;
+        
+        LightColor *= ShadowMapLight;
+        FinalColor += LightColor;
+        
+        //ShadowMapLightCount++;
         LightIndex++;
     }    
 
     for (int j = 0; j < SpotLightsCount; j++)
     {
-        FinalColor += SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
+        LightColor = SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
         ShadowMapLight += GetLightFromShadowMap(WorldPosition, LightIndex);
-        ShadowMapLightCount++;
+        
+        LightColor *= ShadowMapLight;
+        FinalColor += LightColor;
+        
+        //ShadowMapLightCount++;
         LightIndex++;
     }
 
@@ -362,15 +374,14 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         FinalColor += AmbientLights[l].AmbientColor.rgb * DiffuseColor;
     }
 
-    if (ShadowMapLightCount > 0)
-    {
-        ShadowMapLight /= ShadowMapLightCount;
-    }
-    else
-    {
-        ShadowMapLight = 1;
-    }
-    
+    //if (ShadowMapLightCount > 0)
+    //{
+    //    ShadowMapLight /= ShadowMapLightCount;
+    //}
+    //else
+    //{
+    //    ShadowMapLight = 1;
+    //}
     
     return FinalColor;
 }
