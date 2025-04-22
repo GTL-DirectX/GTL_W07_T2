@@ -125,11 +125,41 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType);
 
+    // TODO: Light 개수에 따라 SRV, DSV 따로 해줘야됨.
+    ViewportResource->ClearDepthStencil(Graphics->DeviceContext, EDepthType::EDT_ShadowDepth);
+    ViewportResource->ClearRenderTarget(Graphics->DeviceContext, EResourceType::ERT_ShadowMapVisualization);
+    
+    /***********************임시 추후 수정 필요/***********************/
+    ID3D11DepthStencilView* DepthStencilView = ViewportResource->GetDepthStencil(EDepthType::EDT_ShadowDepth)->DSV;
+
+    ID3D11Resource* depthResource = nullptr;
+    DepthStencilView->GetResource(&depthResource);
+
+    ID3D11Texture2D* depthTexture = nullptr;
+    depthResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&depthTexture);
+    depthResource->Release(); // QueryInterface했으므로 Release 필요
+
+    D3D11_TEXTURE2D_DESC depthDesc;
+    depthTexture->GetDesc(&depthDesc);
+    depthTexture->Release(); // 사용 후 Release
+
+    D3D11_VIEWPORT ShadowViewport;
+
+    ShadowViewport.Width = (FLOAT)depthDesc.Width;
+    ShadowViewport.Height = (FLOAT)depthDesc.Height;
+    ShadowViewport.MinDepth = 0.0f;
+    ShadowViewport.MaxDepth = 1.0f;
+    ShadowViewport.TopLeftX = 0;
+    ShadowViewport.TopLeftY = 0;
+    /***********************임시 추후 수정 필요/***********************/
+
+    Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
+    
     ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex);
     ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
 
     auto DSV = ViewportResource->GetShadowDepthStencil(Type)->DSVs[DSVIndex];
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DSV);
+    Graphics->DeviceContext->OMSetRenderTargets(0, &RenderTargetRHI->RTV, DSV);
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -158,7 +188,7 @@ void FShadowRenderPass::UpdateLightIndex(uint32 index, uint32 PointLightIndex) c
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
-    ObjectData.FarPlane = 200.0f;
+    ObjectData.FarPlane = 30.0f;
     ObjectData.PointLightIndex = PointLightIndex;
     
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);

@@ -1,4 +1,4 @@
-#include "DirectionalLightComponent.h"
+ #include "DirectionalLightComponent.h"
 
 #include "Math/Rotator.h"
 #include "Math/Quat.h"
@@ -38,7 +38,6 @@ void UDirectionalLightComponent::SetProperties(const TMap<FString, FString>& InP
 FVector UDirectionalLightComponent::GetDirection() const 
 {
     FRotator rotator = GetWorldRotation();
-    FVector WorldDown
-        = rotator.ToQuaternion().RotateVector(GetForwardVector());
-    return WorldDown;  
+    FVector WorldDown= rotator.ToQuaternion().RotateVector(GetForwardVector());
+    return WorldDown;
 }

@@ -10,7 +10,6 @@ USpotLightComponent::USpotLightComponent()
     InnerAngle = 0.2618f; // 15 degrees
     OuterAngle = 0.5236f; // 30 degrees
     Attenuation = 20.0f;
-    FallOffExponent = 2.0f;
 }
 
 UObject* USpotLightComponent::Duplicate(UObject* InOuter)
@@ -22,7 +21,6 @@ UObject* USpotLightComponent::Duplicate(UObject* InOuter)
         NewComponent->InnerAngle = InnerAngle;
         NewComponent->OuterAngle = OuterAngle;
         NewComponent->Attenuation = Attenuation;
-        NewComponent->FallOffExponent = FallOffExponent;
     }
 
     return NewComponent;
@@ -35,7 +33,6 @@ void USpotLightComponent::GetProperties(TMap<FString, FString>& OutProperties) c
     OutProperties.Add(TEXT("InnerAngle"), FString::Printf(TEXT("%f"), InnerAngle));
     OutProperties.Add(TEXT("OuterAngle"), FString::Printf(TEXT("%f"), OuterAngle));
     OutProperties.Add(TEXT("Attenuation"), FString::Printf(TEXT("%f"), Attenuation));
-    OutProperties.Add(TEXT("FallOffExponent"), FString::Printf(TEXT("%f"), FallOffExponent));
 }
 
 void USpotLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -72,11 +69,6 @@ void USpotLightComponent::SetProperties(const TMap<FString, FString>& InProperti
     if (TempStr)
     {
         Attenuation = FString::ToFloat(*TempStr);
-    }
-    TempStr = InProperties.Find(TEXT("FallOffExponent"));
-    if (TempStr)
-    {
-        FallOffExponent = FString::ToFloat(*TempStr);
     }
 }
 

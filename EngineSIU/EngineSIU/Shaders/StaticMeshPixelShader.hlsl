@@ -35,7 +35,7 @@ cbuffer TextureConstants : register(b4)
 
 float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
 {
-    float bias = 0.001f;
+    float bias = 0.001;
     
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
@@ -114,7 +114,7 @@ float GetLightFromShadowMap(PS_INPUT_StaticMesh Input)
             0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
         };
         float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-        LightDistance -= bias;
+        //LightDistance -= bias;
 
 
         if (bIsDirectional)
@@ -135,7 +135,6 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     float4 FinalColor = float4(0.f, 0.f, 0.f, 1.f);
 
     float ShadowMapLight = GetLightFromShadowMap(Input);
-
 
     // Diffuse
     float3 DiffuseColor = Material.DiffuseColor;
@@ -174,50 +173,9 @@ float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target
     {
         FinalColor += float4(0.01, 0.01, 0.0, 1);
     }
-
+    
     FinalColor *= ShadowMapLight;
     
     return FinalColor;
-    
-    
-    
-    float bias = 0.001f;
-
-    // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
-    //uint LightIndex = 0;
-    //float4x4 LightViewMatrix;
-    //float4x4 LightProjectionMatrix;
-    //if (DirectionalLightsCount > LightIndex)
-    //{
-    //    uint TargetIndex = LightIndex;
-
-    //    LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
-    //    LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
-    //}
-    //else if (DirectionalLightsCount + PointLightsCount > LightIndex)
-    //{
-    //    uint TargetIndex = LightIndex - DirectionalLightsCount;
-    //    LightViewMatrix = PointLights[TargetIndex].ViewMatrix;
-    //    LightProjectionMatrix = PointLights[TargetIndex].ProjectionMatrix;
-    //}
-    //else if (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex)
-    //{
-    //    uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
-    //    LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
-    //    LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
-    //}
-    
-    //float4 LightViewPos = mul(float4(Input.WorldPosition, 1.0f), LightViewMatrix);
-    //float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
-    
-    //float2 ShadowMapTexCoord =
-    //{
-    //    0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
-    //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
-    //};
-    
-    
-    //return float4(LightClipSpacePos.rg, 0, 1);
-    
 }
     
