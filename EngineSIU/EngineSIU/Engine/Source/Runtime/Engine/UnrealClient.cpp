@@ -218,6 +218,7 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
 
     if (Type == EShadowDepthType::ESDT_Point)
     {
+        // Texture2D 생성
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
         // TODO : Widht, Height Viewprot아닌 다른 사이즈로 하면 RTV도 수정 요함.
@@ -234,6 +235,7 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
         TextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
         NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
     
+        // DSV 6개 생성
         D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc;
         ZeroMemory(&DSVDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
         DSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -253,6 +255,7 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
             }
         }
     
+        // 샘플용 SRV 생성
         D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
         ZeroMemory(&SRVDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
         SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
