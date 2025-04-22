@@ -315,7 +315,7 @@ void FEditorRenderPass::CreateBuffers()
     ConeVertices.Add({ 0.0f, 0.0f, 0.0f }); // Apex
     for (int i = 0; i < NumSegments; i++)
     {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments;
+        float angle = 2.0f * PI * i / (float)NumSegments;
         float x = cos(angle);
         float y = sin(angle);
         ConeVertices.Add({ x, y, 1.0f }); // Bottom
@@ -337,11 +337,11 @@ void FEditorRenderPass::CreateBuffers()
 
     // cone을 덮는 sphere
     // xz plane
-    float deltaAngle = 2.0f * 3.1415926535897932f / (float)NumSegments;
+    float deltaAngle = 2.0f * PI / (float)NumSegments;
     float offsetAngle = deltaAngle * NumSegments / 8; // 45도 부터 시작
     for (int i = 0; i < NumSegments / 4 + 1; i++)
     {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments + offsetAngle;
+        float angle = 2.0f * PI * i / (float)NumSegments + offsetAngle;
         float x = cos(angle) * sqrt(2.f);
         float z = sin(angle) * sqrt(2.f);
         ConeVertices.Add({ x, 0, z });
@@ -355,7 +355,7 @@ void FEditorRenderPass::CreateBuffers()
     // yz plane
     for (int i = 0; i < NumSegments / 4 + 1; i++)
     {
-        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments + offsetAngle;
+        float angle = 2.0f * PI * i / (float)NumSegments + offsetAngle;
         float y = cos(angle) * sqrt(2.f);
         float z = sin(angle) * sqrt(2.f);
         ConeVertices.Add({ 0, y, z });
