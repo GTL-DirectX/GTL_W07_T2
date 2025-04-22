@@ -25,8 +25,6 @@ public:
 protected:
     float Intensity;
     FColor LightColor;
-    FMatrix ViewMatrix;
-    FMatrix ProjectionMatrix;
 
 public:
     void SetCastShadows(bool InCastShadows) { bCastShadows = InCastShadows; }
@@ -34,5 +32,4 @@ public:
 
 protected:
     bool bCastShadows;
-    
 };
