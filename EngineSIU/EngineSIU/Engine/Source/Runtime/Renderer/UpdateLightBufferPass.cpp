@@ -182,6 +182,39 @@ FPointLightInfo FUpdateLightBufferPass::GetPointLightInfo(const UPointLightCompo
 {
     FPointLightInfo LightInfo = {};
 
+    FVector lightPos = LightComp->GetWorldLocation();
+
+    // 6면 방향 벡터
+    FVector targets[6] = {
+        {+1, 0, 0}, {-1, 0, 0},
+        {0, +1, 0}, {0, -1, 0},
+        {0, 0, +1}, {0, 0, -1}
+    };
+    // 각 면에 맞는 up 벡터 (Y+, Y+, Z-, Z+, Y+, Y+)
+    FVector ups[6] = {
+        {0, 1, 0}, {0, 1, 0},
+        {0, 0, -1},{0, 0, +1},
+        {0, 1, 0}, {0, 1, 0}
+    };
+
+    // face 별 뷰 행렬 구하기
+    FMatrix viewMats[6];
+    for (int face = 0; face < 6; ++face)
+    {
+        FVector eye = lightPos;
+        FVector target = lightPos + targets[face];
+        FVector up = ups[face];
+
+        viewMats[face] = JungleMath::CreateViewMatrix(eye, target, up);
+        LightInfo.View[face] = viewMats[face];
+    }
+
+    float fov = FMath::DegreesToRadians(90);
+    float aspect = 1;
+    float nearPlane = 0.01;
+    float farPlane = LightComp->GetRadius();
+
+    LightInfo.Projection = JungleMath::CreateProjectionMatrix(fov, aspect, nearPlane, farPlane);
     LightInfo.LightColor = LightComp->GetLightColor();
     LightInfo.Position = LightComp->GetWorldLocation();
     LightInfo.Radius = LightComp->GetRadius();
