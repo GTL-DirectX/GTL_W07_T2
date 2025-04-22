@@ -13,6 +13,14 @@
 #define LIGHT_TYPE_RECT				3 
 #define LIGHT_TYPE_MAX				4 
 
+struct FShadowInfo
+{
+    float ShadowResolutionScale; // 그림자 해상도 비율
+    float ShadowBias; // 그림자 바이어스
+    float ShadowSlopeBias; // 그림자 경사 바이어스
+    float ShadowSharpen; // 그림자 선명도
+};
+
 struct FAmbientLightInfo
 {
     FLinearColor AmbientColor;         // RGB + alpha
