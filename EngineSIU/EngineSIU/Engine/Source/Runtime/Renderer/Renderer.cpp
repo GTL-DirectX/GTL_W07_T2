@@ -221,7 +221,7 @@ void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>&
     CameraConstantBuffer.ProjectionMatrix = Viewport->GetProjectionMatrix();
     CameraConstantBuffer.InvProjectionMatrix = FMatrix::Inverse(CameraConstantBuffer.ProjectionMatrix);
     CameraConstantBuffer.ViewLocation = Viewport->GetCameraLocation();
-    CameraConstantBuffer.NearClip = Viewport->GetCameraLearClip();
+    CameraConstantBuffer.NearClip = Viewport->GetCameraNearClip();
     CameraConstantBuffer.FarClip = Viewport->GetCameraFarClip();
     BufferManager->UpdateConstantBuffer("FCameraConstantBuffer", CameraConstantBuffer);
 }
