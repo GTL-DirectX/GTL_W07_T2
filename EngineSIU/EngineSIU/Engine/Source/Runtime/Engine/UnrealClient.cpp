@@ -12,6 +12,15 @@ FViewportResource::FViewportResource()
     ClearColors.Add(EResourceType::ERT_Overlay, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PostProcessCompositing, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_ShadowMapVisualization, { 0.f, 0.f, 1.f, 1.f });
+
+    Resolutions.Add(EShadowResolutionLevel::Type::UltraLow, 64);
+    Resolutions.Add(EShadowResolutionLevel::Type::VeryLow, 128);
+    Resolutions.Add(EShadowResolutionLevel::Type::Low, 256);
+    Resolutions.Add(EShadowResolutionLevel::Type::Medium, 512);
+    Resolutions.Add(EShadowResolutionLevel::Type::High, 1024);
+    Resolutions.Add(EShadowResolutionLevel::Type::VeryHigh, 2048);
+    Resolutions.Add(EShadowResolutionLevel::Type::UltraHigh, 4096);
+    Resolutions.Add(EShadowResolutionLevel::Type::Extreme, 8192);
 }
 
 FViewportResource::~FViewportResource()
@@ -19,6 +28,7 @@ FViewportResource::~FViewportResource()
     Release();
 
     ClearColors.Empty();
+    Resolutions.Empty();
 }
 
 void FViewportResource::Initialize(uint32 InWidth, uint32 InHeight)
@@ -192,23 +202,23 @@ bool FViewportResource::HasRenderTarget(EResourceType Type) const
     return RenderTargets.Contains(Type);
 }
 
-HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Type, uint32 ArrayCount)
+HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel, uint32 ArrayCount)
 {
     HRESULT hr = S_OK;
 
     // TODO : 나중에 Static Light, Caster, Receiver에 따라 Depth Map 캐싱데이터 재사용 하기
-    if (HasShadowDepthStencil(Type) && ArrayCount <= GetShadowDepthStencil(Type)->ArrayCount)
+    if (HasShadowDepthStencil(Type, ShadowResolutionLevel) && ArrayCount <= GetShadowDepthStencil(Type, ShadowResolutionLevel)->ArrayCount)
     {
         return hr;
     }
     
-    if (HasShadowDepthStencil(Type))
+    if (HasShadowDepthStencil(Type, ShadowResolutionLevel))
     {
-        ReleaseShadowResource(Type);
+        ReleaseShadowResource(Type, ShadowResolutionLevel);
     }
 
-    uint32 ShadowMapWidth = 1024;
-    uint32 ShadowMapHeight = 1024;
+    uint32 ShadowMapWidth = Resolutions[ShadowResolutionLevel];
+    uint32 ShadowMapHeight = Resolutions[ShadowResolutionLevel];
     
     FShadowDepthStencilRHI NewResource;
     
@@ -319,8 +329,12 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
             return hr;
         }
     }
-    
-    ShadowDepthStencils.Add(Type, NewResource);
+
+    if (!ShadowDepthStencils.Contains(Type))
+    {
+        ShadowDepthStencils.Add(Type, TMap<EShadowResolutionLevel::Type, FShadowDepthStencilRHI>());
+    }
+    ShadowDepthStencils[Type].Add(ShadowResolutionLevel, NewResource);
 
     return hr;
 }
@@ -330,9 +344,9 @@ bool FViewportResource::HasDepthStencil(EDepthType Type) const
     return DepthStencils.Contains(Type);
 }
 
-bool FViewportResource::HasShadowDepthStencil(EShadowDepthType Type) const
+bool FViewportResource::HasShadowDepthStencil(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel) const
 {
-    return ShadowDepthStencils.Contains(Type);
+    return ShadowDepthStencils.Contains(Type) && ShadowDepthStencils[Type].Contains(ShadowResolutionLevel);
 }
 
 TMap<EResourceType, FRenderTargetRHI>& FViewportResource::GetRenderTargets()
@@ -345,7 +359,7 @@ TMap<EDepthType, FDepthStencilRHI>& FViewportResource::GetDepthStencils()
     return DepthStencils;
 }
 
-TMap<EShadowDepthType, FShadowDepthStencilRHI>& FViewportResource::GetShadowDepthStencils()
+TMap<EShadowDepthType, TMap<EShadowResolutionLevel::Type, FShadowDepthStencilRHI>>& FViewportResource::GetShadowDepthStencils()
 {
     return ShadowDepthStencils;
 }
@@ -374,16 +388,16 @@ FDepthStencilRHI* FViewportResource::GetDepthStencil(EDepthType Type)
     return DepthStencils.Find(Type);
 }
 
-FShadowDepthStencilRHI* FViewportResource::GetShadowDepthStencil(EShadowDepthType Type)
+FShadowDepthStencilRHI* FViewportResource::GetShadowDepthStencil(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel)
 {
-    if (!ShadowDepthStencils.Contains(Type))
+    if (!HasShadowDepthStencil(Type, ShadowResolutionLevel))
     {
-        if (FAILED(CreateShadowDepthStencilResource(Type, 16)))
+        if (FAILED(CreateShadowDepthStencilResource(Type, ShadowResolutionLevel, 16)))
         {
             return nullptr;
         }
     }
-    return ShadowDepthStencils.Find(Type);
+    return ShadowDepthStencils[Type].Find(ShadowResolutionLevel);
 }
 
 // 기존 EDepthType::EDT_Depth를 같이 Clear하고 있었음. 고려 필요
@@ -421,26 +435,36 @@ void FViewportResource::ClearDepthStencil(ID3D11DeviceContext* DeviceContext, ED
 
 void FViewportResource::ClearShadowDepthStencils(ID3D11DeviceContext* DeviceContext)
 {
-    for (auto& [Type, Resource] : ShadowDepthStencils)
+    for (auto& [ShadowType, ShadowMapLevelMap] : ShadowDepthStencils)
     {
-        for (auto* DSV : Resource.DSVs)
+        for (auto& [Level, Resource] : ShadowMapLevelMap)
         {
-            DeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+            for (auto* DSV : Resource.DSVs)
+            {
+                DeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+            }
         }
     }
 }
 
-void FViewportResource::ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type, uint32 DSVIndex)
+void FViewportResource::ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type, uint32 DSVIndex, EShadowResolutionLevel::Type ShadowResolutionLevel)
 {
-    if (FShadowDepthStencilRHI* Resource = GetShadowDepthStencil(Type))
+    if (FShadowDepthStencilRHI* Resource = GetShadowDepthStencil(Type, ShadowResolutionLevel))
     {
         DeviceContext->ClearDepthStencilView(Resource->DSVs[DSVIndex], D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     }
 }
 
-void FViewportResource::UpdateShadowMapSize(EShadowDepthType Type, uint32 LightCount)
+void FViewportResource::UpdateShadowMapCapacity(EShadowDepthType Type, uint32 LightCount)
 {
-    CreateShadowDepthStencilResource(Type, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::UltraLow, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::VeryLow, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::Low, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::Medium, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::High, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::VeryHigh, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::UltraHigh, LightCount);
+    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Type::Extreme, LightCount);
 }
 
 std::array<float, 4> FViewportResource::GetClearColor(EResourceType Type) const
@@ -450,6 +474,11 @@ std::array<float, 4> FViewportResource::GetClearColor(EResourceType Type) const
         return *Found;
     }
     return { 0.0f, 0.0f, 0.0f, 1.0f };
+}
+
+uint32 FViewportResource::GetResolution(EShadowResolutionLevel::Type Type)
+{
+    return Resolutions[Type];
 }
 
 void FViewportResource::ReleaseDepthStencilResources()
@@ -486,17 +515,20 @@ void FViewportResource::ReleaseResource(EResourceType Type)
 
 void FViewportResource::ReleaseShadowResources()
 {
-    for (auto& [Type, Resource] : ShadowDepthStencils)
+    for (auto& [ShadowType, ShadowMapLevelMap] : ShadowDepthStencils)
     {
-        Resource.Release();
+        for (auto& [Level, Resource] : ShadowMapLevelMap)
+        {
+            Resource.Release();
+        }
     }
 }
 
-void FViewportResource::ReleaseShadowResource(EShadowDepthType Type)
+void FViewportResource::ReleaseShadowResource(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel)
 {
-    if (HasShadowDepthStencil(Type))
+    if (HasShadowDepthStencil(Type, ShadowResolutionLevel))
     {
-        ShadowDepthStencils[Type].Release();
+        ShadowDepthStencils[Type][ShadowResolutionLevel].Release();
     }
 }
 
