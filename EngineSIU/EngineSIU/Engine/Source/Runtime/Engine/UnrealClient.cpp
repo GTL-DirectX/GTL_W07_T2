@@ -58,7 +58,7 @@ void FViewportResource::Initialize(uint32 InWidth, uint32 InHeight)
 
 void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
 {
-    Release();
+    Release(true);
 
     D3DViewport.Height = static_cast<float>(NewHeight);
     D3DViewport.Width = static_cast<float>(NewWidth);
@@ -72,18 +72,16 @@ void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
     {
         CreateResource(Type);
     }
-
-    for (auto& [Type, Resource] : ShadowDepthStencils)
-    {
-        CreateShadowDepthStencilResource(Type, Resource.ArrayCount);
-    }
 }
 
-void FViewportResource::Release()
+void FViewportResource::Release(bool bIsReSize)
 {
     ReleaseResources();
     ReleaseDepthStencilResources();
-    ReleaseShadowResources();
+    if (!bIsReSize)
+    {
+        ReleaseShadowResources();
+    }
 }
 
 HRESULT FViewportResource::CreateResource(EResourceType Type)
