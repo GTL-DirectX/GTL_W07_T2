@@ -41,7 +41,7 @@ struct FPointLightInfo
     float   Attenuation;
     float   Padding;  // 16바이트 정렬
 
-    FMatrix View;
+    FMatrix View[6];
     FMatrix Projection;
 };
 
