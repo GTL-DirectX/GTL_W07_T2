@@ -7,7 +7,6 @@ SamplerComparisonState ShadowSampler : register(s2);
 
 Texture2D DiffuseTexture : register(t0);
 Texture2D NormalTexture : register(t1);
-Texture2D ShadowMap : register(t104);
 
 cbuffer MaterialConstants : register(b1)
 {
@@ -39,56 +38,116 @@ float GetLightFromShadowMap(float3 WorldPos, float3 WorldNormal)
     float BiasStep = 0.000001f;
     float MinBias = 0.0f;
     float3 LightDirection;
-
     // TODO - LightIndex와 ShadowMap이 일치해야됨. (매핑되어있어야됨?)
     uint LightIndex = 0;
     float4x4 LightViewMatrix;
     float4x4 LightProjectionMatrix;
-    if (DirectionalLightsCount > LightIndex)
-    {
-        uint TargetIndex = LightIndex;
+    
+    bool bIsDirectional = (DirectionalLightsCount > LightIndex);
+    bool bIsPoint = !bIsDirectional && (DirectionalLightsCount + PointLightsCount > LightIndex);
+    bool bIsSpot = !bIsDirectional && !bIsPoint && (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex);
 
-        LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
-        LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
-        LightDirection = DirectionalLights[TargetIndex].Direction;
-    }
-    else if (DirectionalLightsCount + PointLightsCount > LightIndex)
+    uint TargetIndex;
+
+    if (bIsDirectional)
     {
-        uint TargetIndex = LightIndex - DirectionalLightsCount;
-        LightViewMatrix = PointLights[TargetIndex].ViewMatrix;
-        LightProjectionMatrix = PointLights[TargetIndex].ProjectionMatrix;
+        TargetIndex = LightIndex;
     }
-    else if (DirectionalLightsCount + PointLightsCount + SpotLightsCount > LightIndex)
+    else if (bIsPoint)
     {
-        uint TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
-        LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
-        LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
-        LightDirection = SpotLights[TargetIndex].Direction;
+        //float2 ShadowMapTexCoord = {
+        //    0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+        //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
+        //};
+    
+        //bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+        //bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+    
+        //float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+    
+        //if (IsInX || IsInY || LightDistance > 1)
+        //    return 1.0f;
+    
+        //float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
+        //float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
+    
+        //LightDistance -= TotalBias;
+    
+        //return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+        TargetIndex = LightIndex - DirectionalLightsCount;
+    }
+    else if (bIsSpot)
+    {
+        TargetIndex = LightIndex - DirectionalLightsCount - PointLightsCount;
+    }
+    else
+    {
+        return 1;
     }
     
-    float4 LightViewPos = mul(float4(WorldPos, 1.0f), LightViewMatrix);
-    float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+    float Result = 1;
+
+    if (bIsPoint)
+    {
+        float ShadowSum = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            float3 LightPosition = PointLights[TargetIndex].Position;
+
+            float3 LightToPixelDirVector = normalize(Input.WorldPosition - LightPosition);
+            
+            LightViewMatrix = PointLights[TargetIndex].ViewMatrix[i];
+            LightProjectionMatrix = PointLights[TargetIndex].ProjectionMatrix;
+
+            float4 LightViewPos = mul(float4(Input.WorldPosition, 1.0f), LightViewMatrix);
+            float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+
+            float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+            LightDistance -= bias;
+
+            // 큐브맵 샘플링
+            ShadowSum += PointShadowMap.SampleCmpLevelZero(
+                ShadowSampler,
+                float4(LightToPixelDirVector, TargetIndex), // 텍스처 좌표 + TargetIndex
+                LightDistance
+            ).r;
+        }
+        Result = ShadowSum / 6.0f;
+    }
+    else
+    {
+        if (bIsDirectional)
+        {
+            LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
+            LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
+        }
+        else if (bIsSpot)
+        {
+            LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
+            LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+        }
+
+        float4 LightViewPos = mul(float4(Input.WorldPosition, 1.0f), LightViewMatrix);
+        float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+        float2 ShadowMapTexCoord = {
+            0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+            0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
+        };
+        float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+        //LightDistance -= bias;
+
+
+        if (bIsDirectional)
+        {
+            Result = DirectionalShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        }
+        else if (bIsSpot)
+        {
+            Result = SpotShadowMap.SampleCmpLevelZero(ShadowSampler, float3(ShadowMapTexCoord, TargetIndex), LightDistance).r;
+        }
+    }
     
-    float2 ShadowMapTexCoord = {
-        0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
-        0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
-    };
-    
-    bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
-    bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
-    
-    float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-    
-    if (IsInX || IsInY || LightDistance > 1)
-        return 1.0f;
-    
-    float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
-    float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
-    
-    //LightDistance -= TotalBias;
-    
-    //return ShadowMap.SampleCmpLevelZero(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
-    return ShadowMap.SampleCmp(ShadowSampler, ShadowMapTexCoord, LightDistance).r;
+    return Result;
 }
 
 float4 mainPS(PS_INPUT_StaticMesh Input) : SV_Target

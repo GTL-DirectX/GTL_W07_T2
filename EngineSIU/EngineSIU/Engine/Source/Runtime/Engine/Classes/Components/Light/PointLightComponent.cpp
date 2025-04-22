@@ -6,7 +6,6 @@ UPointLightComponent::UPointLightComponent()
 {
     Intensity = 1000.f;
     Radius = 30.0f;
-    FallOffExponent = 2.0f;
     Attenuation = 20.0f;
 }
 
@@ -21,7 +20,6 @@ UObject* UPointLightComponent::Duplicate(UObject* InOuter)
     if (NewComponent)
     {
         NewComponent->Radius = Radius;
-        NewComponent->FallOffExponent = FallOffExponent;
         NewComponent->Attenuation = Attenuation;
     }
     return NewComponent;
@@ -32,7 +30,6 @@ void UPointLightComponent::GetProperties(TMap<FString, FString>& OutProperties) 
     Super::GetProperties(OutProperties);
     OutProperties.Add(TEXT("Radius"), FString::Printf(TEXT("%f"), Radius));
     OutProperties.Add(TEXT("Attenuation"), FString::Printf(TEXT("%f"), Attenuation));
-    OutProperties.Add(TEXT("FallOffExponent"), FString::Printf(TEXT("%f"), FallOffExponent));
 }
 
 void UPointLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
@@ -58,11 +55,6 @@ void UPointLightComponent::SetProperties(const TMap<FString, FString>& InPropert
     if (TempStr)
     {
         Attenuation = FString::ToFloat(*TempStr);
-    }
-    TempStr = InProperties.Find(TEXT("FallOffExponent"));
-    if (TempStr)
-    {
-        FallOffExponent = FString::ToFloat(*TempStr);
     }
 }
 

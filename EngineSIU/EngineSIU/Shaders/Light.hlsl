@@ -38,7 +38,7 @@ struct FPointLightInfo
     float Intensity;
     float Attenuation;
     float Padding;
-    row_major matrix ViewMatrix;
+    row_major matrix ViewMatrix[6];
     row_major matrix ProjectionMatrix;
 };
 
@@ -65,6 +65,10 @@ StructuredBuffer<FAmbientLightInfo> AmbientLights : register(t90);
 StructuredBuffer<FDirectionalLightInfo> DirectionalLights : register(t91);
 StructuredBuffer<FPointLightInfo> PointLights : register(t92);
 StructuredBuffer<FSpotLightInfo> SpotLights : register(t93);
+
+Texture2DArray<float> DirectionalShadowMap : register(t94);
+TextureCubeArray<float> PointShadowMap : register(t95);
+Texture2DArray<float> SpotShadowMap : register(t96);
 
 cbuffer cbLightCount : register(b0)
 {    
