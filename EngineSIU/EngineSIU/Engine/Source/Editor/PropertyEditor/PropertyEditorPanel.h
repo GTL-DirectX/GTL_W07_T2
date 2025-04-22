@@ -11,6 +11,8 @@
 class UActorComponent;
 class UMaterial;
 class AActor;
+class ULightComponentBase;
+class ULightComponent;
 class USpotLightComponent;
 class UDirectionalLightComponent;
 class UPointLightComponent;
@@ -44,6 +46,8 @@ private:
     void RenderForDirectionalLightComponent(UDirectionalLightComponent* LightComponent) const;
     void RenderForPointLightComponent(UPointLightComponent* LightComponent) const;
     void RenderForSpotLightComponent(USpotLightComponent* LightComponent) const;
+
+    void RenderForLightCommon(ULightComponent* LightComponent) const;
 
     
     void RenderForProjectileMovementComponent(UProjectileMovementComponent* ProjectileComp) const;

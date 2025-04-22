@@ -2,7 +2,6 @@
 
 #include "World/World.h"
 #include "Actors/Player.h"
-#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
@@ -79,6 +78,11 @@ void PropertyEditorPanel::Render()
     if (SelectedActor)
     {
         RenderForActor(SelectedActor, TargetComponent);
+    }
+
+    if (ULightComponent* LightComponent = GetTargetComponent<ULightComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForLightCommon(LightComponent);
     }
 
     if (UAmbientLightComponent* LightComponent = GetTargetComponent<UAmbientLightComponent>(SelectedActor, SelectedComponent))
@@ -434,12 +438,12 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
         FImGuiWidget::DrawVec3Control("Direction", LightDirection, 0, 85);
                 
         float InnerDegree = LightComponent->GetInnerAngle();
-        if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 180.f, "%.1f")) {
+        if (ImGui::SliderFloat("InnerDegree", &InnerDegree, 0.01f, 80.f, "%.1f")) {
             LightComponent->SetInnerAngle(InnerDegree);
         }
 
         float OuterDegree = LightComponent->GetOuterAngle();
-        if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 180.f, "%.1f")) {
+        if (ImGui::SliderFloat("OuterDegree", &OuterDegree, 0.01f, 80.f, "%.1f")) {
             LightComponent->SetOuterAngle(OuterDegree);
         }
 
@@ -458,6 +462,46 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
 
         ImGui::TreePop();
     }
+
+    ImGui::PopStyleColor();
+}
+
+void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) const
+{
+    // bCastShadow 토글.
+    // Shadow Property 수치 조절.
+
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+    bool bCastShadow = LightComponent->IsShadowCasting();
+    ImGui::Checkbox("bCastShadow", &bCastShadow);
+    if (bCastShadow != LightComponent->IsShadowCasting())
+    {
+        LightComponent->SetCastShadows(bCastShadow);
+    }
+
+    ImGui::Separator();
+
+    //ImGui::SliderFloat;
+    
+    float ShadowResolutionScale = LightComponent->GetShadowResolutionScale();
+    ImGui::SliderFloat("ShadowResolutionScale", &ShadowResolutionScale, 0.0f, 8.0f, "%.1f");
+    if (ShadowResolutionScale != LightComponent->GetShadowResolutionScale())
+    {
+        LightComponent->SetShadowResolutionScale(ShadowResolutionScale);
+    }
+
+    float ShadowBias = LightComponent->GetShadowBias();
+    if (ImGui::SliderFloat("ShadowBias", &ShadowBias, 0.0f, 1.0f, "%.3f"))
+        LightComponent->SetShadowBias(ShadowBias);
+
+    float ShadowSlopeBias = LightComponent->GetShadowSlopeBias();
+    if (ImGui::SliderFloat("ShadowSlopeBias", &ShadowSlopeBias, 0.0f, 1.0f, "%.3f"))
+        LightComponent->SetShadowSlopeBias(ShadowSlopeBias);
+
+    float ShadowSharpen = LightComponent->GetShadowSharpen();
+    if (ImGui::SliderFloat("ShadowSharpen", &ShadowSharpen, 0.0f, 5.0f, "%.3f"))
+        LightComponent->SetShadowSharpen(ShadowSharpen);
 
     ImGui::PopStyleColor();
 }
