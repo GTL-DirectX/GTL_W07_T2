@@ -245,7 +245,10 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
     //    0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
     //};
     
-    
+    //bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+    //bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+  
+    //float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
     
     //float NdotL = dot(normalize(WorldNormal), normalize(LightDirection));
     //float TotalBias = max(BiasStep * (1.0 - NdotL), MinBias);
@@ -256,30 +259,44 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex)
     
     if (bIsPoint)
     {
-        float ShadowSum = 0;
-        for (int i = 0; i < 6; i++)
-        {            
-            float3 LightPosition = PointLights[TargetIndex].Position;
+         // PointLight 정보
+        FPointLightInfo p = PointLights[TargetIndex];
+        float3 LightPosition = p.Position;
+        //float  bias = 0.001f;          // 샘플 바이어스
 
-            float3 LightToPixelDirVector = normalize(WorldPosition - LightPosition);
-            
-            LightViewMatrix = PointLights[TargetIndex].ViewMatrix[i];
-            LightProjectionMatrix = PointLights[TargetIndex].ProjectionMatrix;
+        // 월드 위치 동차 좌표로 변경
+        float4 WorldPosition4 = float4(WorldPosition, 1.0f);
 
-            float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
-            float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+        // 방향 벡터 (큐브맵 샘플할 좌표)
+        float3 LightDirection = normalize(WorldPosition - LightPosition);
 
-            float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
-            LightDistance -= bias;
+        // 어떤 face를 쓸지 (GPU가 큐브맵 샘플링할 때와 동일한 규칙)
+        float3 LightDirectionAbs = abs(LightDirection);                // 절대값 각 축 크기 구함.
+        int   face;
+        if (LightDirectionAbs.x >= LightDirectionAbs.y && LightDirectionAbs.x >= LightDirectionAbs.z) 
+            face = LightDirection.x > 0 ? 0 : 1;   // +X, -X
+        else if (LightDirectionAbs.y >= LightDirectionAbs.z)
+            face = LightDirection.y > 0 ? 2 : 3;   // +Y, -Y
+        else
+            face = LightDirection.z > 0 ? 4 : 5;   // +Z, -Z
 
-            // 큐브맵 샘플링
-            ShadowSum += PointShadowMap.SampleCmpLevelZero(
-                ShadowSampler,
-                float4(LightToPixelDirVector, TargetIndex), // 텍스처 좌표 + TargetIndex
-                LightDistance
-            ).r;
-        }
-        Result = ShadowSum / 6.0f;
+        // ClipSpace 깊이 계산
+        float4 LightViewPos = mul(WorldPosition4, p.ViewMatrix[face]);        // 월드 → 라이트(큐브 face) 공간
+        float4 clipPos = mul(LightViewPos, p.ProjectionMatrix);   // 라이트 공간 -> Clip space
+
+        //FIXME : bias 적용
+        // NDC 깊이 (0~1) 추출
+        //float refDepth = clipPos.z / clipPos.w - bias;
+        float refDepth = clipPos.z / clipPos.w;
+
+        // SampleCmpLevelZero 으로 비교
+        float shadow = PointShadowMap.SampleCmpLevelZero(
+            ShadowSampler,
+            float4(LightDirection, TargetIndex),  // dir.xyzw: (방향벡터, 큐브맵 array 인덱스)
+            refDepth
+        ).r;
+
+        Result = shadow;
     }
     else
     {
