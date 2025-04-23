@@ -505,9 +505,9 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     if (ImGui::SliderFloat("ShadowSharpen", &ShadowSharpen, 0.0f, 5.0f, "%.3f"))
         LightComponent->SetShadowSharpen(ShadowSharpen);
 
-    int32 ShadowLevel = LightComponent->GetShadowLevel();
-    if (ImGui::SliderInt("Shadow Resolution Level", &ShadowLevel, EShadowResolutionLevel::UltraLow, EShadowResolutionLevel::Extreme))
-        LightComponent->SetShadowLevel(ShadowLevel);
+    int32 ShadowLevel = static_cast<int32>(LightComponent->GetShadowLevel()) + 1;
+    if (ImGui::SliderInt("Shadow Resolution Level", &ShadowLevel, 0, static_cast<int>(EShadowResolutionLevel::Max)))
+        LightComponent->SetShadowLevel(ShadowLevel - 1);
     
     ImGui::PopStyleColor();
 

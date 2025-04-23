@@ -32,7 +32,7 @@ public:
 
     virtual void ClearRenderArr() override;
 
-    void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex = 0, EShadowResolutionLevel::Type ShadowResolutionLevel = EShadowResolutionLevel::Medium);
+    void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex = 0, EShadowResolutionLevel ShadowResolutionLevel = EShadowResolutionLevel::Medium);
     
     void UpdateLightIndex(uint32 index, uint32 PointLightIndex = 0) const;
     void UpdateObjectConstant(const FMatrix& WorldMatrix) const;

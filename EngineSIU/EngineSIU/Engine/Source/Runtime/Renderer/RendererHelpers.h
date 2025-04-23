@@ -8,33 +8,9 @@ enum class EShaderSRVSlot : int8
     SRV_PointLight = 62,
     SRV_SpotLight = 63,
 
-    SRV_DirectionalShadowMapLevel1 = 70,
-    SRV_DirectionalShadowMapLevel2 = 71,
-    SRV_DirectionalShadowMapLevel3 = 72,
-    SRV_DirectionalShadowMapLevel4 = 73,
-    SRV_DirectionalShadowMapLevel5 = 74,
-    SRV_DirectionalShadowMapLevel6 = 75,
-    SRV_DirectionalShadowMapLevel7 = 76,
-    SRV_DirectionalShadowMapLevel8 = 77,
-
-
-    SRV_PointShadowMapLevel1 = 80,
-    SRV_PointShadowMapLevel2 = 81,
-    SRV_PointShadowMapLevel3 = 82,
-    SRV_PointShadowMapLevel4 = 83,
-    SRV_PointShadowMapLevel5 = 84,
-    SRV_PointShadowMapLevel6 = 85,
-    SRV_PointShadowMapLevel7 = 86,
-    SRV_PointShadowMapLevel8 = 87,
-    
-    SRV_SpotShadowMapLevel1 = 90,
-    SRV_SpotShadowMapLevel2 = 91,
-    SRV_SpotShadowMapLevel3 = 92,
-    SRV_SpotShadowMapLevel4 = 93,
-    SRV_SpotShadowMapLevel5 = 94,
-    SRV_SpotShadowMapLevel6 = 95,
-    SRV_SpotShadowMapLevel7 = 96,
-    SRV_SpotShadowMapLevel8 = 97,
+    SRV_DirectionalShadowMap = 70, // 70 ~ 79 예약
+    SRV_PointShadowMap = 80, // 80 ~ 89 예약
+    SRV_SpotShadowMap = 90, // 90 ~ 98 예약
     
     SRV_SceneDepth = 99,
     SRV_Scene = 100,

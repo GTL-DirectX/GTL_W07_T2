@@ -1,21 +1,20 @@
 #pragma once
 #include "HAL/PlatformType.h"
 
-namespace EShadowResolutionLevel
+
+enum class EShadowResolutionLevel
 {
-    enum Type
-    {
-        // 다른 괜찮은 이름 추천
-        UltraLow = 1,
-        VeryLow = 2,
-        Low = 3,
-        Medium = 4,
-        High = 5,
-        VeryHigh = 6,
-        UltraHigh = 7,
-        Extreme = 8,
-    };
-}
+    // 다른 괜찮은 이름 추천
+    UltraLow = 0,
+    VeryLow = 1,
+    Low = 2,
+    Medium = 3,
+    High = 4,
+    VeryHigh = 5,
+    UltraHigh = 6,
+    Extreme = 7,
+    Max = 8,
+};
 
 struct FShadowLightConstants
 {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LightComponentBase.h"
 #include "SceneTypes.h";
@@ -35,9 +35,9 @@ public:
     float GetShadowSharpen() const { return ShadowSharpen; }
     void SetShadowSharpen(float InShadowSharpen) { ShadowSharpen = InShadowSharpen; }
 
-    EShadowResolutionLevel::Type GetShadowLevel() const { return ShadowResolutionLevel; }
-    void SetShadowLevel(EShadowResolutionLevel::Type InType) { ShadowResolutionLevel = InType; }
-    void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel::Type>(InType); }
+    EShadowResolutionLevel GetShadowLevel() const { return ShadowResolutionLevel; }
+    void SetShadowLevel(EShadowResolutionLevel InType) { ShadowResolutionLevel = InType; }
+    void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel>(InType); }
     
 protected:
     // Shadow Map 해상도 비율 조절 값. 1.0 기본, > 1.0 고해상도, < 1.0 저해상도.
@@ -50,5 +50,5 @@ protected:
     // 0.0f = 흐릿한 그림자, 1.0f = 선명한 그림자. 1.0f 이상은 그림자 경계가 날카로워짐.
     float ShadowSharpen;
 
-    EShadowResolutionLevel::Type ShadowResolutionLevel = EShadowResolutionLevel::Medium;    
+    EShadowResolutionLevel ShadowResolutionLevel = EShadowResolutionLevel::Medium;
 };
