@@ -316,6 +316,17 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             bIsSelected = true;
         }
 
+        if (bIsSelected)
+        {
+            // RTV 사이즈 변경
+            if (CurrentResolutionLevel != ShadowLevel)
+            {
+                FViewportResource* ViewportResource = Viewport->GetViewportResource();
+                ViewportResource->ReleaseResources(EResourceType::ERT_ShadowMapVisualize);   
+            }
+            CurrentResolutionLevel = ShadowLevel;
+        }
+
         for (int32 i = 0; i < CASCADE_COUNT; i++)
         {
             PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, ShadowLevel, bIsSelected, LightIndexPerResolution[ShadowLevel], i);
@@ -350,6 +361,17 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UPointLightComponent>() == TargetLight)
         {
             bIsSelected = true;
+        }
+
+        if (bIsSelected)
+        {
+            // RTV 사이즈 변경
+            if (CurrentResolutionLevel != ShadowLevel)
+            {
+                FViewportResource* ViewportResource = Viewport->GetViewportResource();
+                ViewportResource->ReleaseResources(EResourceType::ERT_ShadowMapVisualize);   
+            }
+            CurrentResolutionLevel = ShadowLevel;
         }
         
         for (int32 i = 0; i < 6; i++)
@@ -387,6 +409,17 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<USpotLightComponent>() == TargetLight)
         {
             bIsSelected = true;
+        }
+
+        if (bIsSelected)
+        {
+            // RTV 사이즈 변경
+            if (CurrentResolutionLevel != ShadowLevel)
+            {
+                FViewportResource* ViewportResource = Viewport->GetViewportResource();
+                ViewportResource->ReleaseResources(EResourceType::ERT_ShadowMapVisualize);   
+            }
+            CurrentResolutionLevel = ShadowLevel;
         }
 
         PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, ShadowLevel, bIsSelected, LightIndexPerResolution[ShadowLevel]);

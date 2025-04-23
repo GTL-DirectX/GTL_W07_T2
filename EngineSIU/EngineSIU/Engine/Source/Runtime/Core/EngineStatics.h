@@ -2,9 +2,9 @@
 #include <atomic>
 #include "HAL/PlatformType.h"
 
-
 class UEngineStatics
 {
+    friend class SceneManager;
     static std::atomic<uint32> NextUUID;
 
 public:

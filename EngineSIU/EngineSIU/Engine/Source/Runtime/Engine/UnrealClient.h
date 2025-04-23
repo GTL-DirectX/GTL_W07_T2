@@ -171,6 +171,14 @@ public:
 
     uint32 GetResolution(EShadowResolutionLevel Type);
 
+    void ReleaseResource(EResourceType Type, uint32 Index = 0);
+    void ReleaseResources(EResourceType Type);
+    void ReleaseResources();
+    void ReleaseDepthStencilResources();
+    void ReleaseDepthStencilResource(EDepthType Type);
+    void ReleaseShadowResources();
+    void ReleaseShadowResource(EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel);
+    
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
@@ -178,13 +186,6 @@ private:
     TMap<EResourceType, TArray<FRenderTargetRHI>> RenderTargets;
     TMap<EDepthType, FDepthStencilRHI> DepthStencils;
     TMap<EShadowDepthType, TMap<EShadowResolutionLevel, FShadowDepthStencilRHI>> ShadowDepthStencils;   // TODO: Viewport마다 동일한 Shadow를 여러번 그린다.
-    
-    void ReleaseResources();
-    void ReleaseResource(EResourceType Type, uint32 Index = 0);
-    void ReleaseDepthStencilResources();
-    void ReleaseDepthStencilResource(EDepthType Type);
-    void ReleaseShadowResources();
-    void ReleaseShadowResource(EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel);
 
     /**
      * ClearColors 맵에는 모든 EResourceType에 대응하는 색상을

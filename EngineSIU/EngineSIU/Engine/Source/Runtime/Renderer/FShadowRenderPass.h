@@ -65,4 +65,6 @@ private:
     FDXDBufferManager* BufferManager = nullptr;
     FGraphicsDevice* Graphics = nullptr;
     FDXDShaderManager* ShaderManager = nullptr;
+    
+    EShadowResolutionLevel CurrentResolutionLevel;
 };
