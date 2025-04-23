@@ -264,6 +264,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, LightIndexPerResolution[ShadowLevel], ShadowLevel);
         UpdateLightIndex(LightIndex);
         RenderMeshComponents();
+        TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
         
         LightIndexPerResolution[ShadowLevel]++;
     }
@@ -281,6 +282,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
         
+        TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
         for (int32 i = 0; i < 6; i++)
         {
             PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, LightIndexPerResolution[ShadowLevel], ShadowLevel);
@@ -303,9 +305,10 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
         
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, LightIndexPerResolution[ShadowLevel], ShadowLevel);    
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, LightIndexPerResolution[ShadowLevel], ShadowLevel);
         UpdateLightIndex(LightIndex);
         RenderMeshComponents();
+        TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
         
         LightIndexPerResolution[ShadowLevel]++;
     }

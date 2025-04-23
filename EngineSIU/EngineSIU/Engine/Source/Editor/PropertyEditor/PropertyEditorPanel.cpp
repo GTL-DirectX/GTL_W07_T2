@@ -344,35 +344,27 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         ImGui::Spacing();
 
-        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
-        // shadowmap view
-        ID3D11ShaderResourceView* originalSRV = GEngineLoop.GetLevelEditor()
-            ->GetActiveViewportClient()
-            ->GetViewportResource()
-            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
-            ->SRV;
+        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
+                    ->GetActiveViewportClient()
+                    ->GetViewportResource()
+                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, LightComponent->GetShadowLevel())
+                    ->Texture2D;
 
-        /*ID3D11Resource* originalResource = nullptr;
-        originalSRV->GetResource(&originalResource);
+        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        SRVDesc.Texture2DArray.MostDetailedMip = 0;
+        SRVDesc.Texture2DArray.MipLevels = 1;
+        SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex();
+        SRVDesc.Texture2DArray.ArraySize = 1;
 
-        ID3D11Texture2D* originalTexture = nullptr;
-        originalResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&originalTexture);
-
-        D3D11_TEXTURE2D_DESC desc = {};
-        originalTexture->GetDesc(&desc);
-        desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        desc.Usage = D3D11_USAGE_STAGING;
-        desc.CPUAccessFlags = 0;
-        desc.MiscFlags = 0;
-
-        ID3D11Texture2D* copiedTexture = nullptr;
-        GEngineLoop.GraphicDevice.Device->CreateTexture2D(&desc, nullptr, &copiedTexture);
-        GEngineLoop.GraphicDevice.DeviceContext->CopyResource(copiedTexture, originalTexture);
-
-        ID3D11ShaderResourceView* copiedSRV = nullptr;
-        GEngineLoop.GraphicDevice.Device->CreateShaderResourceView(copiedTexture, nullptr, &copiedSRV);
-        */
-        ImTextureID texId = (ImTextureID)originalSRV;
+        
+        ID3D11ShaderResourceView* SRV = nullptr;
+        FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
+        
+        // TODO Visualize 안하고 있음
+        
+        ImTextureID texId = (ImTextureID)SRV;
         ImGui::Image(texId, ImVec2(256, 256));
         ImGui::TreePop();
     }
@@ -399,16 +391,35 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
             LightComponent->SetRadius(Radius);
         }
 
-        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
-        // shadowmap view
-        auto srv = GEngineLoop.GetLevelEditor()
-            ->GetActiveViewportClient()
-            ->GetViewportResource()
-            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
-            ->SRV;
+        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
+                    ->GetActiveViewportClient()
+                    ->GetViewportResource()
+                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, LightComponent->GetShadowLevel())
+                    ->Texture2D;
 
-        ImTextureID texId = (ImTextureID)srv;
-        ImGui::Image(texId, ImVec2(256, 256));
+        for (int i = 0; i < 6; i++)
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+            SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+            SRVDesc.Texture2DArray.MostDetailedMip = 0;
+            SRVDesc.Texture2DArray.MipLevels = 1;
+            SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex() + i;
+            SRVDesc.Texture2DArray.ArraySize = 1;
+
+        
+            ID3D11ShaderResourceView* SRV = nullptr;
+            FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
+        
+            // TODO Visualize 안하고 있음
+        
+            ImTextureID texId = (ImTextureID)SRV;
+            if (i % 2 == 1)
+            {
+                ImGui::SameLine();
+            }
+            ImGui::Image(texId, ImVec2(128, 128));
+        }
 
         ImGui::TreePop();
     }
@@ -448,17 +459,27 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
             LightComponent->SetOuterAngle(OuterDegree);
         }
 
-        // FIXME : 단일 SRV 기준. 추후 여러 SRV 사용 시 변경 필요.
-        // shadowmap view
-        auto srv = GEngineLoop.GetLevelEditor()
-            ->GetActiveViewportClient()
-            ->GetViewportResource()
-            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualization)
-            ->SRV;
+        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
+                    ->GetActiveViewportClient()
+                    ->GetViewportResource()
+                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, LightComponent->GetShadowLevel())
+                    ->Texture2D;
 
+        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
+        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        SRVDesc.Texture2DArray.MostDetailedMip = 0;
+        SRVDesc.Texture2DArray.MipLevels = 1;
+        SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex();
+        SRVDesc.Texture2DArray.ArraySize = 1;
 
-        ImTextureID texId = (ImTextureID)srv;
-
+        
+        ID3D11ShaderResourceView* SRV = nullptr;
+        FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
+        
+        // TODO Visualize 안하고 있음
+        
+        ImTextureID texId = (ImTextureID)SRV;
         ImGui::Image(texId, ImVec2(256, 256));
 
         ImGui::TreePop();
