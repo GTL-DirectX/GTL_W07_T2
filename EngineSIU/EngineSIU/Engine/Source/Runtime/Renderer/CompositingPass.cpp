@@ -54,7 +54,7 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     }
 
     const EResourceType ResourceType = EResourceType::ERT_Compositing; 
-    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTargets().Find(ResourceType);
+    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Scene)->SRV);
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PostProcess), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_Fog)->SRV);

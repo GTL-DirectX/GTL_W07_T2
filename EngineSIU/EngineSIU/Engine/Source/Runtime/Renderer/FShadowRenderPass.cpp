@@ -123,11 +123,9 @@ void FShadowRenderPass::PrepareRender()
  * 
  * @param DSVIndex Resolution Level별 Index 
  */
-void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, int32 DSVIndex, EShadowResolutionLevel ShadowResolutionLevel)
+void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, bool bIsSelected, int32 DSVIndex, uint32 RenderTargetIndex)
 {
-    constexpr EResourceType VisualizationResourceType = EResourceType::ERT_ShadowMapVisualization;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType);
 
     auto* TargetShadowRHI = ViewportResource->GetShadowDepthStencil(Type, ShadowResolutionLevel);
     
@@ -146,17 +144,28 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
 
     
     ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex, ShadowResolutionLevel);
-    ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
-
     auto DSV = TargetShadowRHI->DSVs[DSVIndex];
-    Graphics->DeviceContext->OMSetRenderTargets(0, &RenderTargetRHI->RTV, DSV);
+
+    if (bIsSelected)
+    {
+        constexpr EResourceType VisualizationResourceType = EResourceType::ERT_ShadowMapVisualize;
+        FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType, RenderTargetIndex);
+        ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType, RenderTargetIndex);
+
+        Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DSV);
+        Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    }
+    else
+    {
+        Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DSV);
+        Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
+    }
 
     Graphics->DeviceContext->RSSetState(FEngineLoop::GraphicDevice.RasterizerShadow);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Graphics->DeviceContext->IASetInputLayout(InputLayout);
     
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
 
     BufferManager->BindConstantBuffer(TEXT("FLightCount"), 0, EShaderStage::Vertex);
 
@@ -260,8 +269,23 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
-        
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, LightIndexPerResolution[ShadowLevel], ShadowLevel);
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        AActor* SelectedActor = Engine->GetSelectedActor();
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+
+        bool bIsSelected = false;
+        if (SelectedComponent != nullptr && SelectedComponent == TargetLight)
+        {
+            bIsSelected = true;
+        }
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UDirectionalLightComponent>() != nullptr)
+        {
+            bIsSelected = true;
+        }
+
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, ShadowLevel, bIsSelected, LightIndexPerResolution[ShadowLevel]);
         UpdateLightIndex(LightIndex);
         RenderMeshComponents();
         TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
@@ -281,11 +305,26 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        AActor* SelectedActor = Engine->GetSelectedActor();
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+
+        bool bIsSelected = false;
+        if (SelectedComponent != nullptr && SelectedComponent == TargetLight)
+        {
+            bIsSelected = true;
+        }
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UPointLightComponent>() != nullptr)
+        {
+            bIsSelected = true;
+        }
         
         TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
         for (int32 i = 0; i < 6; i++)
         {
-            PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, LightIndexPerResolution[ShadowLevel], ShadowLevel);
+            PrepareRenderState(Viewport, EShadowDepthType::ESDT_Point, ShadowLevel, bIsSelected, LightIndexPerResolution[ShadowLevel], i);
             UpdateLightIndex(LightIndex, i);
             RenderMeshComponents();
             LightIndexPerResolution[ShadowLevel]++;
@@ -304,8 +343,23 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
-        
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, LightIndexPerResolution[ShadowLevel], ShadowLevel);
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        AActor* SelectedActor = Engine->GetSelectedActor();
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+
+        bool bIsSelected = false;
+        if (SelectedComponent != nullptr && SelectedComponent == TargetLight)
+        {
+            bIsSelected = true;
+        }
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<USpotLightComponent>() != nullptr)
+        {
+            bIsSelected = true;
+        }
+
+        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Spot, ShadowLevel, bIsSelected, LightIndexPerResolution[ShadowLevel]);
         UpdateLightIndex(LightIndex);
         RenderMeshComponents();
         TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
