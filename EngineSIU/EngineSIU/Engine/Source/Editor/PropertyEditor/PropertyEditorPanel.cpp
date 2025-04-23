@@ -470,12 +470,36 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     {
         LightComponent->SetCastShadows(bCastShadow);
     }
+
+    ImGui::SameLine();
     
     bool bUsePCF = LightComponent->IsUseShadowPCF();
     ImGui::Checkbox("bUsePCF", &bUsePCF);
     if (bUsePCF != LightComponent->IsUseShadowPCF())
     {
         LightComponent->SetUseShadowPCF(bUsePCF);
+    }
+
+    if (ImGui::Button("MoveTo", ImVec2(64.0f, 32.0f)))
+    {
+        UE_LOG(LogLevel::Display, "Attach to Light");
+
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+        AActor* SelectedActor = Engine->GetSelectedActor();
+        if (SelectedActor)
+        {
+            USceneComponent* SelectedComponent = SelectedActor->GetComponentByClass<ULightComponent>();
+            if (SelectedComponent)
+            {
+                // 임시로 Actor의 위치로 이동.
+                FVector NewLocation = SelectedActor->GetActorLocation();
+                NewLocation.X += 1.0f;
+                GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetCameraLocation(NewLocation);
+                FRotator NewRotation = SelectedActor->GetActorRotation();
+                NewRotation.Yaw *= -1;
+                GEngineLoop.GetLevelEditor()->GetActiveViewportClient()->SetCameraRotation(NewRotation);
+            }
+        }
     }
     
     float ShadowResolutionScale = LightComponent->GetShadowResolutionScale();

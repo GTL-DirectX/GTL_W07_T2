@@ -166,7 +166,10 @@ public:
     bool IsOrthographic() const;
     bool IsPerspective() const;
 
+    void SetCameraLocation(const FVector& InLocation);
     FVector GetCameraLocation() const;
+
+    void SetCameraRotation(const FRotator& InRotation);
 
     float GetCameraNearClip() const;
     float GetCameraFarClip() const;

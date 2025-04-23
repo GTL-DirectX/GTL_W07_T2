@@ -19,6 +19,7 @@ void ULightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
     OutProperties.Add(TEXT("ShadowBias"), FString::SanitizeFloat(ShadowBias));
     OutProperties.Add(TEXT("ShadowSlopeBias"), FString::SanitizeFloat(ShadowSlopeBias));
     OutProperties.Add(TEXT("ShadowSharpen"), FString::SanitizeFloat(ShadowSharpen));
+    OutProperties.Add(TEXT("bUseShadowPCF"), bUseShadowPCF ? TEXT("true") : TEXT("false"));
     OutProperties.Add(TEXT("ShadowResolutionLevel"), FString::Printf(TEXT("%d"), static_cast<int>(ShadowResolutionLevel)));
 }
 
@@ -46,6 +47,11 @@ void ULightComponent::SetProperties(const TMap<FString, FString>& InProperties)
     {
         ShadowSharpen = FCString::Atof(**TempStr);
     }
+    TempStr = InProperties.Find(TEXT("bUseShadowPCF"));
+    if (TempStr)
+    {
+        bUseShadowPCF = FCString::Atoi(**TempStr) != 0;
+    }
     TempStr = InProperties.Find(TEXT("ShadowResolutionLevel"));
     if (TempStr)
     {
@@ -58,6 +64,12 @@ UObject* ULightComponent::Duplicate(UObject* InOuter)
     ThisClass* NewComponent = Cast<ThisClass>(Super::Duplicate(InOuter));
 
     NewComponent->AABB = AABB;
+    NewComponent->ShadowResolutionScale = ShadowResolutionScale;
+    NewComponent->ShadowBias = ShadowBias;
+    NewComponent->ShadowSlopeBias = ShadowSlopeBias;
+    NewComponent->ShadowSharpen = ShadowSharpen;
+    NewComponent->bUseShadowPCF = bUseShadowPCF;
+    NewComponent->ShadowResolutionLevel = ShadowResolutionLevel;
   
     return NewComponent;
 }
