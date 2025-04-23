@@ -251,7 +251,7 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
     HRESULT hr = S_OK;
 
     // TODO : 나중에 Static Light, Caster, Receiver에 따라 Depth Map 캐싱데이터 재사용 하기
-    if (HasShadowDepthStencil(Type, ShadowResolutionLevel) && ArrayCount <= GetShadowDepthStencil(Type, ShadowResolutionLevel)->ArrayCount)
+    if (HasShadowDepthStencil(Type, ShadowResolutionLevel) && ArrayCount == GetShadowDepthStencil(Type, ShadowResolutionLevel)->ArrayCount)
     {
         return hr;
     }
@@ -259,6 +259,11 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
     if (HasShadowDepthStencil(Type, ShadowResolutionLevel))
     {
         ReleaseShadowResource(Type, ShadowResolutionLevel);
+    }
+
+    if (ArrayCount == 0)
+    {
+        return hr;
     }
 
     uint32 ShadowMapWidth = Resolutions[ShadowResolutionLevel];
@@ -480,12 +485,12 @@ FShadowDepthStencilRHI* FViewportResource::GetShadowDepthStencil(EShadowDepthTyp
 {
     if (!HasShadowDepthStencil(Type, ShadowResolutionLevel))
     {
-        if (FAILED(CreateShadowDepthStencilResource(Type, ShadowResolutionLevel, 16)))
+        if (FAILED(CreateShadowDepthStencilResource(Type, ShadowResolutionLevel, 2)))
         {
             return nullptr;
         }
     }
-    return ShadowDepthStencils[Type].Find(ShadowResolutionLevel);
+    return &ShadowDepthStencils[Type][ShadowResolutionLevel];
 }
 
 // 기존 EDepthType::EDT_Depth를 같이 Clear하고 있었음. 고려 필요
@@ -546,16 +551,9 @@ void FViewportResource::ClearShadowDepthStencil(ID3D11DeviceContext* DeviceConte
     }
 }
 
-void FViewportResource::UpdateShadowMapCapacity(EShadowDepthType Type, uint32 LightCount)
+void FViewportResource::UpdateShadowMapCapacity(EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, uint32 LightCount)
 {
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::UltraLow, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::VeryLow, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Low, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Medium, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::High, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::VeryHigh, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::UltraHigh, LightCount);
-    CreateShadowDepthStencilResource(Type, EShadowResolutionLevel::Extreme, LightCount);
+    CreateShadowDepthStencilResource(Type, ShadowResolutionLevel, LightCount);
 }
 
 std::array<float, 4> FViewportResource::GetClearColor(EResourceType Type) const
