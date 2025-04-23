@@ -28,11 +28,11 @@ public:
     virtual void PrepareRender() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
-    void UpdateLightBuffer() const;
+    void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
 private:
     FAmbientLightInfo GetAmbientLightInfo(const UAmbientLightComponent* LightComp) const;
-    FDirectionalLightInfo GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const;
+    FDirectionalLightInfo GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp, const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     FPointLightInfo GetPointLightInfo(const UPointLightComponent* LightComp) const;
     FSpotLightInfo GetSpotLightInfo(const USpotLightComponent* LightComp) const;
     FShadowInfo GetShadowInfo(const ULightComponent* LightComp) const;

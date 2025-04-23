@@ -13,6 +13,7 @@
 #include "GameFramework/Actor.h"
 #include "Math/JungleMath.h"
 #include "UObject/UObjectIterator.h"
+#include "Editor/UnrealEd/EditorViewportClient.h"
 
 //------------------------------------------------------------------------------
 // 생성자/소멸자
@@ -65,7 +66,7 @@ void FUpdateLightBufferPass::PrepareRender()
 
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    UpdateLightBuffer();
+    UpdateLightBuffer(Viewport);
 }
 
 void FUpdateLightBufferPass::ClearRenderArr()
@@ -77,7 +78,7 @@ void FUpdateLightBufferPass::ClearRenderArr()
 }
 
 
-void FUpdateLightBufferPass::UpdateLightBuffer() const
+void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     TArray<FDirectionalLightInfo> DirectionalLightInfo = {};
     TArray<FAmbientLightInfo> AmbientLightInfo = {};
@@ -86,7 +87,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer() const
 
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
-        DirectionalLightInfo.Add(GetDirectionalLightInfo(Light));
+        DirectionalLightInfo.Add(GetDirectionalLightInfo(Light, Viewport));
     }
 
     for (UAmbientLightComponent* Light : AmbientLights)
@@ -141,12 +142,12 @@ FAmbientLightInfo FUpdateLightBufferPass::GetAmbientLightInfo(const UAmbientLigh
     return LightInfo;
 }
 
-FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp) const
+FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDirectionalLightComponent* LightComp, const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
     FDirectionalLightInfo LightInfo = {};
     
     //씬 바운딩 스피어 정보
-    FVector sceneCenter = FVector(0, 0, 0);
+    FVector sceneCenter = FVector(Viewport->GetCameraLocation());
     float sphereRadius = 100.0f;
 
     // 라이트 방향 벡터 가져와 단위화 및 반전
