@@ -386,7 +386,7 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
             ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
                 ->GetActiveViewportClient()
                 ->GetViewportResource()
-                ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
+                ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize, i)
                 ->SRV;
             ImTextureID texId = (ImTextureID)SRV;
             ImGui::Image(texId, ImVec2(128, 128));
