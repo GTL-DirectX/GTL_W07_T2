@@ -104,6 +104,7 @@ struct FShadowDepthStencilRHI
 
     void Release()
     {
+        ArrayCount = 0;
         if (SRV)
         {
             SRV->Release();

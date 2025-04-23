@@ -82,6 +82,15 @@ void FDXDBufferManager::BindStructuredBuffer(const FString& Key, UINT StartSlot,
 
     if (StructuredBuffer.Buffer == nullptr)
     {
+        ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+        if (Stage == EShaderStage::Vertex)
+        {
+            DXDeviceContext->VSSetShaderResources(StartSlot, 1, NullSRV);
+        }
+        else
+        {
+            DXDeviceContext->PSSetShaderResources(StartSlot, 1, NullSRV);
+        }
         return;
     }
     
