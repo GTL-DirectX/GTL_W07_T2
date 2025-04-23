@@ -40,9 +40,6 @@ public:
     EShadowResolutionLevel GetShadowLevel() const { return ShadowResolutionLevel; }
     void SetShadowLevel(EShadowResolutionLevel InType) { ShadowResolutionLevel = InType; }
     void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel>(InType); }
-
-    void SetSliceIndex(int32 InSliceIndex) { ShadowSliceIndex = InSliceIndex; }
-    int32 GetShadowSliceIndex() const { return ShadowSliceIndex; }
     
 protected:
     // Shadow Map 해상도 비율 조절 값. 1.0 기본, > 1.0 고해상도, < 1.0 저해상도.
@@ -57,6 +54,5 @@ protected:
 
     bool bUseShadowPCF = true;
 
-    int32 ShadowSliceIndex;
     EShadowResolutionLevel ShadowResolutionLevel = EShadowResolutionLevel::Medium;
 };

@@ -19,7 +19,6 @@ void ULightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
     OutProperties.Add(TEXT("ShadowBias"), FString::SanitizeFloat(ShadowBias));
     OutProperties.Add(TEXT("ShadowSlopeBias"), FString::SanitizeFloat(ShadowSlopeBias));
     OutProperties.Add(TEXT("ShadowSharpen"), FString::SanitizeFloat(ShadowSharpen));
-    OutProperties.Add(TEXT("ShadowSliceIndex"), FString::Printf(TEXT("%d"), ShadowSliceIndex));
     OutProperties.Add(TEXT("ShadowResolutionLevel"), FString::Printf(TEXT("%d"), static_cast<int>(ShadowResolutionLevel)));
 }
 
@@ -46,11 +45,6 @@ void ULightComponent::SetProperties(const TMap<FString, FString>& InProperties)
     if (TempStr)
     {
         ShadowSharpen = FCString::Atof(**TempStr);
-    }
-    TempStr = InProperties.Find(TEXT("ShadowSliceIndex"));
-    if (TempStr)
-    {
-        ShadowSliceIndex = FCString::Atoi(**TempStr);
     }
     TempStr = InProperties.Find(TEXT("ShadowResolutionLevel"));
     if (TempStr)

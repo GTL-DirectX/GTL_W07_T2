@@ -344,13 +344,22 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         ImGui::Spacing();
 
-        ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
-            ->GetActiveViewportClient()
-            ->GetViewportResource()
-            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
-            ->SRV;
-        ImTextureID texId = (ImTextureID)SRV;
-        ImGui::Image(texId, ImVec2(256, 256));
+        for (int i = 0; i < CASCADE_COUNT; i++)
+        {
+            if (i % 2 == 1)
+            {
+                ImGui::SameLine();
+            }
+            
+            ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
+                ->GetActiveViewportClient()
+                ->GetViewportResource()
+                ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize, i)
+                ->SRV;
+            ImTextureID texId = (ImTextureID)SRV;
+            ImGui::Image(texId, ImVec2(128, 128));
+        }
+        
         ImGui::TreePop();
     }
 

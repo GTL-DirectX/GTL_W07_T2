@@ -11,7 +11,7 @@
 #define DIRECTIONAL_LIGHT   3
 #define AMBIENT_LIGHT       4
 
-
+#define CASCADE_COUNT 4
 
 struct FShadowInfo
 {
@@ -36,8 +36,8 @@ struct FDirectionalLightInfo
     float3 Direction;
     float Intensity;
     
-    row_major matrix ViewMatrix;
-    row_major matrix ProjectionMatrix;
+    row_major matrix ViewMatrix[CASCADE_COUNT];
+    row_major matrix ProjectionMatrix[CASCADE_COUNT];
     
     FShadowInfo ShadowInfo;
 };
@@ -486,7 +486,6 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
     {
         return 1.0f;
     }
-    
  
     if (bIsPoint)
     {
@@ -536,24 +535,14 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
         }
         ShadowMapIndices[ShadowResolutionLevel]++;
     }
-    else
+    else if (bIsDirectional)
     {
-        float4 LightViewPos;
-        float4 LightClipSpacePos;
-        if (bIsDirectional)
-        {
-            float4x4 LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
-            float4x4 LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
-            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
-            LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
-        }
-        else if (bIsSpot)
-        {
-            float4x4 LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
-            float4x4 LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
-            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
-            LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
-        }
+        uint CascadeIndex = 0;
+        
+        float4x4 LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix[CascadeIndex];
+        float4x4 LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix[CascadeIndex];
+        float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+        float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
 
         float2 ShadowMapTexCoord = {
             0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
@@ -567,34 +556,48 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
         if (IsInX || IsInY || LightDistance > 1)
             return 1.0f;
 
-        if (bIsSpot)
+        FDirectionalLightInfo LightInfo = DirectionalLights[TargetIndex];
+        if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
         {
-            FSpotLightInfo LightInfo = SpotLights[TargetIndex];
-            
-            if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
-            {
-                Result = SampleSpotLightShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
-            }
-            else
-            {
-                Result = SampleSpotLightShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
-            }
-            ShadowMapIndices[ShadowResolutionLevel]++;
+            Result = SampleDirectionalShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
         }
-        else if (bIsDirectional)
+        else
         {
-            FDirectionalLightInfo LightInfo = DirectionalLights[TargetIndex];
-            if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
-            {
-                Result = SampleDirectionalShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
-            }
-            else
-            {
-                Result = SampleDirectionalShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
-            }
-            
-            ShadowMapIndices[ShadowResolutionLevel]++;
+            Result = SampleDirectionalShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
         }
+            
+        ShadowMapIndices[ShadowResolutionLevel]++;
+    }
+    else if (bIsSpot)
+    {
+        float4x4 LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
+        float4x4 LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
+        float4 LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+        float4 LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
+
+        float2 ShadowMapTexCoord = {
+            0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
+            0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
+        };
+        float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+        
+        bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
+        bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
+    
+        if (IsInX || IsInY || LightDistance > 1)
+            return 1.0f;
+
+        FSpotLightInfo LightInfo = SpotLights[TargetIndex];
+            
+        if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
+        {
+            Result = SampleSpotLightShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+        }
+        else
+        {
+            Result = SampleSpotLightShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+        }
+        ShadowMapIndices[ShadowResolutionLevel]++;
     }
     
     return Result;

@@ -34,7 +34,7 @@ public:
     
     void PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, bool bIsSelected, int32 DSVIndex = 0, uint32 RenderTargetIndex = 0);
     
-    void UpdateLightIndex(uint32 index, uint32 PointLightIndex = 0) const;
+    void UpdateLightIndex(uint32 index, uint32 LightInnerIndex = 0) const;
     void UpdateObjectConstant(const FMatrix& WorldMatrix) const;
 
 

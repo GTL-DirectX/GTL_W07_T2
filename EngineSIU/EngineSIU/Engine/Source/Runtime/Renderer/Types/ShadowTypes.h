@@ -19,9 +19,7 @@ enum class EShadowResolutionLevel
 struct FShadowLightConstants
 {
     uint32 LightIndex;
-    float NearPlane;
-    float FarPlane;
-    uint32 PointLightIndex;
+    uint32 LightInnerIndex;
 };
 
 struct FShadowInfo

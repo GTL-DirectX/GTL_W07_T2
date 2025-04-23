@@ -323,7 +323,56 @@ HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Typ
             return hr;
         } 
     }
-    else
+    else if (Type == EShadowDepthType::ESDT_Directional)
+    {
+        D3D11_TEXTURE2D_DESC TextureDesc;
+        ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+        TextureDesc.Width = ShadowMapWidth;
+        TextureDesc.Height = ShadowMapHeight;
+        TextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        TextureDesc.MipLevels = 0;
+        TextureDesc.ArraySize = ArrayCount * CASCADE_COUNT;
+        TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+        TextureDesc.CPUAccessFlags = 0;
+        TextureDesc.SampleDesc.Count = 1;
+        TextureDesc.SampleDesc.Quality = 0;
+        TextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+        NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
+    
+        D3D11_DEPTH_STENCIL_VIEW_DESC DSVDesc;
+        ZeroMemory(&DSVDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+        DSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        DSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+        DSVDesc.Texture2DArray.MipSlice = 0;
+        DSVDesc.Texture2DArray.ArraySize = 1;
+        for (uint32 i = 0; i < ArrayCount * CASCADE_COUNT; ++i)
+        {
+            DSVDesc.Texture2DArray.FirstArraySlice = i;
+            ID3D11DepthStencilView* TempDSV = nullptr;
+            hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DSVDesc,  &TempDSV);
+            NewResource.DSVs.Add(TempDSV);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
+        }
+    
+        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+        ZeroMemory(&SRVDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+        SRVDesc.Texture2DArray.MipLevels = 1;
+        SRVDesc.Texture2DArray.ArraySize = ArrayCount * CASCADE_COUNT;
+        SRVDesc.Texture2DArray.FirstArraySlice = 0;
+        SRVDesc.Texture2DArray.MostDetailedMip = 0;
+        
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D,  &SRVDesc,  &NewResource.SRV);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+    }
+    else if (Type == EShadowDepthType::ESDT_Spot)
     {
         D3D11_TEXTURE2D_DESC TextureDesc;
         ZeroMemory(&TextureDesc, sizeof(D3D11_TEXTURE2D_DESC));
