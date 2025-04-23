@@ -153,7 +153,7 @@ public:
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearRenderTargets(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
-    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
+    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, uint32 Index = 0);
 
     void ClearDepthStencils(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 Depth Stencil 뷰를 clear. 없는 경우 생성해서 clear.

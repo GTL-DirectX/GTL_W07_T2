@@ -451,9 +451,9 @@ void FViewportResource::ClearRenderTargets(ID3D11DeviceContext* DeviceContext)
     }
 }
 
-void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type)
+void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, uint32 Index)
 {
-    if (FRenderTargetRHI* Resource = GetRenderTarget(Type))
+    if (FRenderTargetRHI* Resource = GetRenderTarget(Type, Index))
     {
         DeviceContext->ClearRenderTargetView(Resource->RTV, ClearColors[Type].data());
     }

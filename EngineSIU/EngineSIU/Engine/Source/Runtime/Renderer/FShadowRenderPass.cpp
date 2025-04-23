@@ -150,7 +150,7 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     {
         constexpr EResourceType VisualizationResourceType = EResourceType::ERT_ShadowMapVisualize;
         FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(VisualizationResourceType, RenderTargetIndex);
-        ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType);
+        ViewportResource->ClearRenderTarget(Graphics->DeviceContext, VisualizationResourceType, RenderTargetIndex);
 
         Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DSV);
         Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
