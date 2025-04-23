@@ -23,7 +23,7 @@ enum class EResourceType : uint8
     ERT_Editor,
     ERT_Overlay,
     ERT_PostProcessCompositing,
-    ERT_ShadowMapVisualization,
+    ERT_ShadowMapVisualize,
     ERT_MAX,
 };
 
@@ -135,28 +135,25 @@ public:
 
     void Release(bool bIsReSize = false);
 
-    HRESULT CreateResource(EResourceType Type);
+    HRESULT CreateResource(EResourceType Type, uint32 Index = 0);
     HRESULT CreateDepthStencilResource(EDepthType Type);
     HRESULT CreateShadowDepthStencilResource(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel, uint32 ArrayCount);
     
     D3D11_VIEWPORT& GetD3DViewport() { return D3DViewport; }
-    TMap<EResourceType, FRenderTargetRHI>& GetRenderTargets();
-    TMap<EDepthType, FDepthStencilRHI>& GetDepthStencils();
-    TMap<EShadowDepthType, TMap<EShadowResolutionLevel::Type, FShadowDepthStencilRHI>>& GetShadowDepthStencils();
 
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    FRenderTargetRHI* GetRenderTarget(EResourceType Type);
+    FRenderTargetRHI* GetRenderTarget(EResourceType Type, uint32 Index = 0);
     FDepthStencilRHI* GetDepthStencil(EDepthType Type);
     FShadowDepthStencilRHI* GetShadowDepthStencil(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel);
 
-    bool HasRenderTarget(EResourceType Type) const;
+    bool HasRenderTarget(EResourceType Type, uint32 Index = 0) const;
     bool HasDepthStencil(EDepthType Type) const;
     bool HasShadowDepthStencil(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel) const;
 
     // 가지고있는 모든 리소스의 렌더 타겟 뷰를 clear
     void ClearRenderTargets(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 렌더 타겟 뷰를 clear. 없는 경우 생성해서 clear.
-    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type);
+    void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, uint32 Index = 0);
 
     void ClearDepthStencils(ID3D11DeviceContext* DeviceContext);
     // 지정한 타입의 Depth Stencil 뷰를 clear. 없는 경우 생성해서 clear.
@@ -177,12 +174,12 @@ private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
-    TMap<EResourceType, FRenderTargetRHI> RenderTargets;
+    TMap<EResourceType, TArray<FRenderTargetRHI>> RenderTargets;
     TMap<EDepthType, FDepthStencilRHI> DepthStencils;
     TMap<EShadowDepthType, TMap<EShadowResolutionLevel::Type, FShadowDepthStencilRHI>> ShadowDepthStencils;   // TODO: Viewport마다 동일한 Shadow를 여러번 그린다.
     
     void ReleaseResources();
-    void ReleaseResource(EResourceType Type);
+    void ReleaseResource(EResourceType Type, uint32 Index);
     void ReleaseDepthStencilResources();
     void ReleaseDepthStencilResource(EDepthType Type);
     void ReleaseShadowResources();

@@ -344,26 +344,11 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         ImGui::Spacing();
 
-        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
-                    ->GetActiveViewportClient()
-                    ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, LightComponent->GetShadowLevel())
-                    ->Texture2D;
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-        SRVDesc.Texture2DArray.MostDetailedMip = 0;
-        SRVDesc.Texture2DArray.MipLevels = 1;
-        SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex();
-        SRVDesc.Texture2DArray.ArraySize = 1;
-
-        
-        ID3D11ShaderResourceView* SRV = nullptr;
-        FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
-        
-        // TODO Visualize 안하고 있음
-        
+        ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
+            ->SRV;
         ImTextureID texId = (ImTextureID)SRV;
         ImGui::Image(texId, ImVec2(256, 256));
         ImGui::TreePop();
@@ -390,34 +375,20 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
         if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
             LightComponent->SetRadius(Radius);
         }
-
-        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
-                    ->GetActiveViewportClient()
-                    ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, LightComponent->GetShadowLevel())
-                    ->Texture2D;
-
+        
         for (int i = 0; i < 6; i++)
         {
-            D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-            SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-            SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-            SRVDesc.Texture2DArray.MostDetailedMip = 0;
-            SRVDesc.Texture2DArray.MipLevels = 1;
-            SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex() + i;
-            SRVDesc.Texture2DArray.ArraySize = 1;
-
-        
-            ID3D11ShaderResourceView* SRV = nullptr;
-            FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
-        
-            // TODO Visualize 안하고 있음
-        
-            ImTextureID texId = (ImTextureID)SRV;
             if (i % 2 == 1)
             {
                 ImGui::SameLine();
             }
+            
+            ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
+                ->GetActiveViewportClient()
+                ->GetViewportResource()
+                ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
+                ->SRV;
+            ImTextureID texId = (ImTextureID)SRV;
             ImGui::Image(texId, ImVec2(128, 128));
         }
 
@@ -459,26 +430,13 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
             LightComponent->SetOuterAngle(OuterDegree);
         }
 
-        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
-                    ->GetActiveViewportClient()
-                    ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, LightComponent->GetShadowLevel())
-                    ->Texture2D;
+        ImGui::Spacing();
 
-        D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-        SRVDesc.Texture2DArray.MostDetailedMip = 0;
-        SRVDesc.Texture2DArray.MipLevels = 1;
-        SRVDesc.Texture2DArray.FirstArraySlice = LightComponent->GetShadowSliceIndex();
-        SRVDesc.Texture2DArray.ArraySize = 1;
-
-        
-        ID3D11ShaderResourceView* SRV = nullptr;
-        FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(Texture, &SRVDesc, &SRV);
-        
-        // TODO Visualize 안하고 있음
-        
+        ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
+            ->SRV;
         ImTextureID texId = (ImTextureID)SRV;
         ImGui::Image(texId, ImVec2(256, 256));
 
