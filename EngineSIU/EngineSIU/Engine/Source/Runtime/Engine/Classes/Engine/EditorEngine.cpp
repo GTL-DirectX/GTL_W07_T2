@@ -82,6 +82,12 @@ void UEditorEngine::Tick(float DeltaTime)
                         if (Actor)
                         {
                             Actor->Tick(DeltaTime);
+
+                            if (Actor->IsA<ADirectionalLight>())
+                            {
+                                const float Speed = 50.f;
+                                Actor->SetActorRotation(Actor->GetActorRotation() + FRotator(0, Speed * DeltaTime, 0));
+                            }
                         }
                     }
                 }
