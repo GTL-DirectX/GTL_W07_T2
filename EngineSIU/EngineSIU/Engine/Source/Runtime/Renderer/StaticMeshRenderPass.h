@@ -50,8 +50,7 @@ public:
     void ChangeViewMode(EViewModeIndex ViewModeIndex);
 
 private:
-    void PSSetShaderResources(FViewportResource* ViewportResource, EShaderSRVSlot ShaderSRVSlot, EShadowDepthType ShadowDepthType, EShadowResolutionLevel
-                              ::Type ShadowResolutionLevel) const;
+    void PSSetShaderResources(FViewportResource* ViewportResource, EShaderSRVSlot ShaderSRVSlot, EShadowDepthType ShadowDepthType, EShadowResolutionLevel ShadowResolutionLevel) const;
     
 private:
     TArray<UStaticMeshComponent*> StaticMeshComponents;

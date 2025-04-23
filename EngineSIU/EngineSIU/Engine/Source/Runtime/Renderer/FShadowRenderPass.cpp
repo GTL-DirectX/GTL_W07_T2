@@ -123,7 +123,7 @@ void FShadowRenderPass::PrepareRender()
  * 
  * @param DSVIndex Resolution Level별 Index 
  */
-void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel, bool bIsSelected, int32 DSVIndex, uint32 RenderTargetIndex)
+void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewportClient>& Viewport, EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, bool bIsSelected, int32 DSVIndex, uint32 RenderTargetIndex)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
 
@@ -256,7 +256,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
     UpdateShadowMapSize(Viewport);
     int LightIndex = 0;
 
-    TMap<EShadowResolutionLevel::Type, int32> LightIndexPerResolution;
+    TMap<EShadowResolutionLevel, int32> LightIndexPerResolution;
     
     for (; LightIndex < DirectionalLights.Num(); LightIndex++)
     {
