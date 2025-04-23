@@ -513,6 +513,18 @@ bool FEditorViewportClient::IsPerspective() const
     return (GetViewportType() == LVT_Perspective);
 }
 
+void FEditorViewportClient::SetCameraLocation(const FVector& InLocation)
+{
+    if (IsPerspective())
+    {
+        PerspectiveCamera.SetLocation(InLocation);
+    }
+    else
+    {
+        OrthogonalCamera.SetLocation(InLocation);
+    }
+}
+
 FVector FEditorViewportClient::GetCameraLocation() const
 {
     if (IsPerspective())
@@ -520,6 +532,18 @@ FVector FEditorViewportClient::GetCameraLocation() const
         return PerspectiveCamera.GetLocation();
     }
     return OrthogonalCamera.GetLocation();
+}
+
+void FEditorViewportClient::SetCameraRotation(const FRotator& InRotation)
+{
+    if (IsPerspective())
+    {
+        PerspectiveCamera.SetRotation(InRotation.ToVector());
+    }
+    else
+    {
+        OrthogonalCamera.SetRotation(InRotation.ToVector());
+    }
 }
 
 float FEditorViewportClient::GetCameraNearClip() const
