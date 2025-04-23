@@ -23,6 +23,8 @@ struct FShadowLightConstants
     float NearPlane;
     float FarPlane;
     uint32 PointLightIndex;
+    uint32 CascadedIndex;
+    FVector Padding2;
 };
 
 struct FShadowInfo
@@ -33,4 +35,5 @@ struct FShadowInfo
     float ShadowSharpen; // 그림자 선명도
     uint32 ShadowResolutionLevel; // 그림자 해상도 Level
     FVector Padding;
+
 };

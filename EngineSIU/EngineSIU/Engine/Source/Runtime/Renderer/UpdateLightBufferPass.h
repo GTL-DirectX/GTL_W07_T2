@@ -18,6 +18,8 @@ class UPointLightComponent;
 class USpotLightComponent;
 class ULightComponent;
 
+static constexpr int NUM_CASCADES = 4;
+
 class FUpdateLightBufferPass : public IRenderPass
 {
 public:
@@ -28,7 +30,7 @@ public:
     virtual void PrepareRender() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void ClearRenderArr() override;
-    void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
+    void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
 private:
     FAmbientLightInfo GetAmbientLightInfo(const UAmbientLightComponent* LightComp) const;
@@ -37,6 +39,8 @@ private:
     FSpotLightInfo GetSpotLightInfo(const USpotLightComponent* LightComp) const;
     FShadowInfo GetShadowInfo(const ULightComponent* LightComp) const;
 
+    // CascadeSplit 계산함수
+    void CalculateCascadeSplits(float NearPlane, float FarPlane);
 private:
     TArray<USpotLightComponent*> SpotLights;
     TArray<UPointLightComponent*> PointLights;
@@ -46,4 +50,9 @@ private:
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
     FDXDShaderManager* ShaderManager;
+    
+    // 각 cascade의 far depth 값
+    TArray<float> CascadeSplits;
+
+ 
 };

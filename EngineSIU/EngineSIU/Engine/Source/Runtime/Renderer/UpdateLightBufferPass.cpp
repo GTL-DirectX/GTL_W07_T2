@@ -14,6 +14,7 @@
 #include "Math/JungleMath.h"
 #include "UObject/UObjectIterator.h"
 #include "Editor/UnrealEd/EditorViewportClient.h"
+#include "LevelEditor/SLevelEditor.h"
 
 //------------------------------------------------------------------------------
 // 생성자/소멸자
@@ -23,6 +24,7 @@ FUpdateLightBufferPass::FUpdateLightBufferPass()
     , Graphics(nullptr)
     , ShaderManager(nullptr)
 {
+    CascadeSplits.SetNum(NUM_CASCADES);
 }
 
 FUpdateLightBufferPass::~FUpdateLightBufferPass()
@@ -78,16 +80,35 @@ void FUpdateLightBufferPass::ClearRenderArr()
 }
 
 
-void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     TArray<FDirectionalLightInfo> DirectionalLightInfo = {};
     TArray<FAmbientLightInfo> AmbientLightInfo = {};
     TArray<FPointLightInfo> PointLightInfo = {};
     TArray<FSpotLightInfo> SpotLightInfo = {};
 
+
+    SLevelEditor* LevelEd = GEngineLoop.GetLevelEditor();
+
+    // CascadeSplits 계산
+    float Near = LevelEd->GetActiveViewportClient()->GetCameraNearClip();
+    float Far = LevelEd->GetActiveViewportClient()->GetCameraFarClip();
+
+    CalculateCascadeSplits(Near, Far);
     for (UDirectionalLightComponent* Light : DirectionalLights)
     {
-        DirectionalLightInfo.Add(GetDirectionalLightInfo(Light, Viewport));
+        for (int CascadeIdx = 0; CascadeIdx < NUM_CASCADES; ++Cascadeidx)
+        {
+            float CascadeNear;
+            if(CascadeIdx==0){
+                CascadeNear = Near;
+            }
+            else {
+                CascadeNear = CascadeSplits[CascadeSplits[Cascadeidx - 1]];
+            }
+            float CascadeFar = CascadeSplits[CascadeIdx];
+            DirectionalLightInfo.Add(GetDirectionalLightInfo(Light, Viewport));
+        }
     }
 
     for (UAmbientLightComponent* Light : AmbientLights)
@@ -102,21 +123,6 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
 
     for (UPointLightComponent* Light : PointLights)
     {
-
-        // if (PointLightsCount < MAX_POINT_LIGHT)
-        // {
-        //     LightBufferData.PointLights[PointLightsCount] = GetPointLightInfo(Light);
-        //     LightBufferData.PointLights[PointLightsCount].Position = Light->GetWorldLocation();
-
-        //     FMatrix ViewMatrix = JungleMath::CreateViewMatrix(Light->GetWorldLocation(), Light->GetWorldLocation() + Light->GetWorldForwardVector(), FVector{ 0.0f,0.0f, 1.0f });
-        //     // TODO: 임시값
-        //     FMatrix ProjectionMatrix = JungleMath::CreateProjectionMatrix(FMath::DegreesToRadians(90), 1, 0.001, D3D11_FLOAT32_MAX);
-
-        //     LightBufferData.PointLights[PointLightsCount].View = ViewMatrix;
-        //     LightBufferData.PointLights[PointLightsCount].Projection = ProjectionMatrix;
-
-        //     PointLightsCount++;
-        // }
         PointLightInfo.Add(GetPointLightInfo(Light));
     }
 
@@ -282,5 +288,23 @@ FShadowInfo FUpdateLightBufferPass::GetShadowInfo(const ULightComponent* LightCo
     ShadowInfo.ShadowResolutionLevel = LightComp->GetShadowLevel();
     
     return ShadowInfo;
+}
+
+void FUpdateLightBufferPass::CalculateCascadeSplits(float NearPlane, float FarPlane)
+{
+    float SplitLambda = 0.95f;        // 0.0 = 완전 선형, 1.0 = 완전 로그
+    for (int i = 0; i < NUM_CASCADES; ++i) {
+        // 1-based cascade 비율
+        float CascadeId = (i + 1) / static_cast<float>(NUM_CASCADES);
+
+        // 로그 스플릿
+        float LogSplit = NearPlane * FMath::Pow(FarPlane / NearPlane, CascadeId);
+        // 선형 스플릿
+        float LinSplit = NearPlane + (FarPlane - NearPlane) * CascadeId;
+
+        // 혼합
+        CascadeSplits[i] = FMath::Lerp(LinSplit, LogSplit, SplitLambda);
+
+    }
 }
 

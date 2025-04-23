@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LightComponentBase.h"
 #include "SceneTypes.h";
@@ -39,6 +39,7 @@ public:
     void SetShadowLevel(EShadowResolutionLevel::Type InType) { ShadowResolutionLevel = InType; }
     void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel::Type>(InType); }
 
+    // Ui에서 쓰고있음 
     void SetSliceIndex(int32 InSliceIndex) { ShadowSliceIndex = InSliceIndex; }
     int32 GetShadowSliceIndex() const { return ShadowSliceIndex; }
     

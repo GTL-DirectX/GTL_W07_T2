@@ -42,6 +42,8 @@ enum class EShadowDepthType : uint8
     ESDT_MAX,
 };
 
+static constexpr int NUM_CASCADES = 4;
+
 struct FRenderTargetRHI
 {
     ID3D11Texture2D* Texture2D = nullptr;

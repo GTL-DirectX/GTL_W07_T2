@@ -21,6 +21,7 @@
 #include "Components/Light/SpotLightComponent.h"
 #include "Types/ShadowTypes.h"
 #include "Runtime/Renderer/RendererHelpers.h"
+#include "Runtime/Renderer/UpdateLightBufferPass.h"
 
 FShadowRenderPass::FShadowRenderPass()
     : InputLayout(nullptr)
@@ -173,14 +174,14 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     BufferManager->BindConstantBuffer("FShadowLightConstants", 1, EShaderStage::Pixel);
 }
 
-void FShadowRenderPass::UpdateLightIndex(uint32 index, uint32 PointLightIndex) const
+void FShadowRenderPass::UpdateLightIndex(uint32 index, uint32 PointLightIndex, uint32 CascadedIndex) const
 {
     FShadowLightConstants ObjectData = {};
     ObjectData.LightIndex = index;
     ObjectData.NearPlane = 0.001f;
     ObjectData.FarPlane = 30.0f;
     ObjectData.PointLightIndex = PointLightIndex;
-    
+    ObjectData.CascadedIndex = CascadedIndex;
     BufferManager->UpdateConstantBuffer(TEXT("FShadowLightConstants"), ObjectData);
 }
 
@@ -260,10 +261,12 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             LightIndexPerResolution.Add(ShadowLevel, 0);
         }
-        
-        PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, LightIndexPerResolution[ShadowLevel], ShadowLevel);
-        UpdateLightIndex(LightIndex);
-        RenderMeshComponents();
+       
+        for (int CascadeIdx = 0; CascadeIdx < NUM_CASCADES; CascadeIdx++) {
+            PrepareRenderState(Viewport, EShadowDepthType::ESDT_Directional, LightIndexPerResolution[ShadowLevel], ShadowLevel);
+            UpdateLightIndex(LightIndex, 0, CascadeIdx);
+            RenderMeshComponents();
+        }
         TargetLight->SetSliceIndex(LightIndexPerResolution[ShadowLevel]);
         
         LightIndexPerResolution[ShadowLevel]++;

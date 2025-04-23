@@ -1,6 +1,6 @@
 #include "ShaderRegisters.hlsl"
 #include "Light.hlsl"
-
+#define NUM_CASCADES 4
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
@@ -13,6 +13,8 @@ cbuffer VSConstants : register(b1)
     float NearPlane; 
     float FarPlane;
     uint PointLightIndex;
+    uint CascadedIndex;
+    float3 IndexPadding;
 }
 
 VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
@@ -24,8 +26,8 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     if (DirectionalLightsCount > LightIndex)
     {
         uint TargetIndex = LightIndex;
-        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ViewMatrix);
-        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ProjectionMatrix);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ViewMatrix[CascadedIndex]);
+        output.Pos = mul(output.Pos, DirectionalLights[TargetIndex].ProjectionMatrix[CascadedIndex]);        
     }
     else if (DirectionalLightsCount + PointLightsCount > LightIndex)
     {
