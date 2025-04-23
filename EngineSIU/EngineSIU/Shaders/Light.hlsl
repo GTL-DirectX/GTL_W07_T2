@@ -394,8 +394,7 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
     else
     {
         float4 InputPosition = float4(WorldPosition, 1.0f);
-
-        InputPosition = ShadowPos;
+        InputPosition = ShadowPos / ShadowPos.w;
         
         float4 LightViewPos;
         float4 LightClipSpacePos;
@@ -418,13 +417,14 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
             0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
             0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
         };
+        
         float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
         
         bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
         bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
     
-        if (IsInX || IsInY || LightDistance > 1)
-            return 1.0f;
+        //if (IsInX || IsInY || LightDistance > 1)
+        //    return 1.0f;
 
         if (bIsSpot)
         {
