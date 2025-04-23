@@ -3,6 +3,9 @@
 #include "EngineLoop.h"
 #include <array>
 
+#include "Components/Light/LightComponent.h"
+#include "Engine/EditorEngine.h"
+
 FViewportResource::FViewportResource()
 {
     ClearColors.Add(EResourceType::ERT_Compositing, { 0.f, 0.f, 0.f, 1.f });
@@ -11,7 +14,7 @@ FViewportResource::FViewportResource()
     ClearColors.Add(EResourceType::ERT_Editor, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_Overlay, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PostProcessCompositing, { 0.f, 0.f, 0.f, 0.f });
-    ClearColors.Add(EResourceType::ERT_ShadowMapVisualization, { 0.f, 0.f, 1.f, 1.f });
+    ClearColors.Add(EResourceType::ERT_ShadowMapVisualize, { 0.f, 0.f, 1.f, 1.f });
 
     Resolutions.Add(EShadowResolutionLevel::Type::UltraLow, 64);
     Resolutions.Add(EShadowResolutionLevel::Type::VeryLow, 128);
@@ -78,9 +81,12 @@ void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
         CreateDepthStencilResource(Type);
     }
 
-    for (auto& [Type, Resource] : RenderTargets)
+    for (auto& [Type, Resources] : RenderTargets)
     {
-        CreateResource(Type);
+        for (int i = 0; i < Resources.Num(); i++)
+        {
+            CreateResource(Type, i);
+        }
     }
 }
 
@@ -94,11 +100,11 @@ void FViewportResource::Release(bool bIsReSize)
     }
 }
 
-HRESULT FViewportResource::CreateResource(EResourceType Type)
+HRESULT FViewportResource::CreateResource(EResourceType Type, uint32 Index)
 {
-    if (HasRenderTarget(Type))
+    if (HasRenderTarget(Type, Index))
     {
-        ReleaseResource(Type);
+        ReleaseResource(Type, Index);
     }
     
     FRenderTargetRHI NewResource;
@@ -106,8 +112,34 @@ HRESULT FViewportResource::CreateResource(EResourceType Type)
     HRESULT hr = S_OK;
     
     D3D11_TEXTURE2D_DESC TextureDesc = {};
-    TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
-    TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
+    if (Type == EResourceType::ERT_ShadowMapVisualize)
+    {
+        UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+
+        AActor* SelectedActor = Engine->GetSelectedActor();
+        USceneComponent* SelectedComponent = Engine->GetSelectedComponent();
+        ULightComponent* TargetComponent = nullptr;
+        if (ULightComponent* Comp = Cast<ULightComponent>(SelectedComponent))
+        {
+            TargetComponent = Comp;
+        }
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<ULightComponent>() != nullptr)
+        {
+            TargetComponent = SelectedActor->GetComponentByClass<ULightComponent>();
+        }
+        if (TargetComponent == nullptr)
+        {
+            return E_FAIL;
+        }
+
+        TextureDesc.Width = Resolutions[TargetComponent->GetShadowLevel()];
+        TextureDesc.Height = Resolutions[TargetComponent->GetShadowLevel()];
+    }
+    else
+    {
+        TextureDesc.Width = static_cast<uint32>(D3DViewport.Width);
+        TextureDesc.Height = static_cast<uint32>(D3DViewport.Height);
+    }
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 1;
     TextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -139,7 +171,19 @@ HRESULT FViewportResource::CreateResource(EResourceType Type)
         return hr;
     }
 
-    RenderTargets.Add(Type, NewResource);
+    if (!RenderTargets.Contains(Type))
+    {
+        RenderTargets.Add(Type, TArray<FRenderTargetRHI>());
+    }
+
+    if (Index < RenderTargets[Type].Num())
+    {
+        RenderTargets[Type][Index] = NewResource;
+    }
+    else
+    {
+        RenderTargets[Type].Add(NewResource);
+    }
 
     return hr;
 }
@@ -197,9 +241,9 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
 }
 
 
-bool FViewportResource::HasRenderTarget(EResourceType Type) const
+bool FViewportResource::HasRenderTarget(EResourceType Type, uint32 Index) const
 {
-    return RenderTargets.Contains(Type);
+    return RenderTargets.Contains(Type) && RenderTargets[Type].Num() > Index;
 }
 
 HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Type, EShadowResolutionLevel::Type ShadowResolutionLevel, uint32 ArrayCount)
@@ -349,31 +393,26 @@ bool FViewportResource::HasShadowDepthStencil(EShadowDepthType Type, EShadowReso
     return ShadowDepthStencils.Contains(Type) && ShadowDepthStencils[Type].Contains(ShadowResolutionLevel);
 }
 
-TMap<EResourceType, FRenderTargetRHI>& FViewportResource::GetRenderTargets()
+FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type, uint32 Index)
 {
-    return RenderTargets;
-}
-
-TMap<EDepthType, FDepthStencilRHI>& FViewportResource::GetDepthStencils()
-{
-    return DepthStencils;
-}
-
-TMap<EShadowDepthType, TMap<EShadowResolutionLevel::Type, FShadowDepthStencilRHI>>& FViewportResource::GetShadowDepthStencils()
-{
-    return ShadowDepthStencils;
-}
-
-FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type)
-{
-    if (!RenderTargets.Contains(Type))
+    uint32 StartIndex;
+    if (HasRenderTarget(Type, 0))
     {
-        if (FAILED(CreateResource(Type)))
+        StartIndex = RenderTargets[Type].Num();
+    }
+    else
+    {
+        StartIndex = 0;
+    }
+    
+    for (uint32 i = StartIndex; !HasRenderTarget(Type, Index); i++)
+    {
+        if (FAILED(CreateResource(Type, i)))
         {
             return nullptr;
         }
     }
-    return RenderTargets.Find(Type);
+    return &RenderTargets[Type][Index];
 }
 
 FDepthStencilRHI* FViewportResource::GetDepthStencil(EDepthType Type)
@@ -403,9 +442,12 @@ FShadowDepthStencilRHI* FViewportResource::GetShadowDepthStencil(EShadowDepthTyp
 // 기존 EDepthType::EDT_Depth를 같이 Clear하고 있었음. 고려 필요
 void FViewportResource::ClearRenderTargets(ID3D11DeviceContext* DeviceContext)
 {
-    for (auto& [Type, Resource] : RenderTargets)
+    for (auto& [Type, Resources] : RenderTargets)
     {
-        DeviceContext->ClearRenderTargetView(Resource.RTV, ClearColors[Type].data());
+        for (auto& Resource : Resources)
+        {
+            DeviceContext->ClearRenderTargetView(Resource.RTV, ClearColors[Type].data());
+        }
     }
 }
 
@@ -499,17 +541,20 @@ void FViewportResource::ReleaseDepthStencilResource(EDepthType Type)
 
 void FViewportResource::ReleaseResources()
 {
-    for (auto& [Type, Resource] : RenderTargets)
+    for (auto& [Type, Resources] : RenderTargets)
     {
-        Resource.Release();
+        for (auto& Resource : Resources)
+        {
+            Resource.Release();
+        }
     }
 }
 
-void FViewportResource::ReleaseResource(EResourceType Type)
+void FViewportResource::ReleaseResource(EResourceType Type, uint32 Index)
 {
-    if (HasRenderTarget(Type))
+    if (HasRenderTarget(Type, Index))
     {
-        RenderTargets[Type].Release();
+        RenderTargets[Type][Index].Release();
     }
 }
 

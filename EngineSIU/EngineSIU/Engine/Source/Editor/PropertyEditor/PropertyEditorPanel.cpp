@@ -345,13 +345,13 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
         ImGui::Spacing();
 
         ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
-                    ->GetActiveViewportClient()
-                    ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, LightComponent->GetShadowLevel())
-                    ->Texture2D;
+            ->GetActiveViewportClient()
+            ->GetViewportResource()
+            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
+            ->Texture2D;
 
         D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
         SRVDesc.Texture2DArray.MostDetailedMip = 0;
         SRVDesc.Texture2DArray.MipLevels = 1;
@@ -390,17 +390,17 @@ void PropertyEditorPanel::RenderForPointLightComponent(UPointLightComponent* Lig
         if (ImGui::SliderFloat("Radius", &Radius, 0.01f, 200.f, "%.1f")) {
             LightComponent->SetRadius(Radius);
         }
-
-        ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
-                    ->GetActiveViewportClient()
-                    ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, LightComponent->GetShadowLevel())
-                    ->Texture2D;
-
+        
         for (int i = 0; i < 6; i++)
         {
+            ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
+                    ->GetActiveViewportClient()
+                    ->GetViewportResource()
+                    ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize, i)
+                    ->Texture2D;
+            
             D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-            SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+            SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
             SRVDesc.Texture2DArray.MostDetailedMip = 0;
             SRVDesc.Texture2DArray.MipLevels = 1;
@@ -462,11 +462,11 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
         ID3D11Texture2D* Texture = GEngineLoop.GetLevelEditor()
                     ->GetActiveViewportClient()
                     ->GetViewportResource()
-                    ->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, LightComponent->GetShadowLevel())
+                    ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
                     ->Texture2D;
 
         D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
-        SRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        SRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
         SRVDesc.Texture2DArray.MostDetailedMip = 0;
         SRVDesc.Texture2DArray.MipLevels = 1;
