@@ -7,8 +7,8 @@ ULightComponent::ULightComponent()
     AABB.min = { -1.f,-1.f,-0.1f };
 
     ShadowResolutionScale = 1.0f;
-    ShadowBias = 0.5f;
-    ShadowSlopeBias = 0.5f;
+    ShadowBias = 0.0f;
+    ShadowSlopeBias = 0.0f;
     ShadowSharpen = 0.03;
 }
 

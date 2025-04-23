@@ -418,7 +418,7 @@ void PropertyEditorPanel::RenderForSpotLightComponent(USpotLightComponent* Light
             [&](FLinearColor c) { LightComponent->SetLightColor(c.ToColorRawRGB8()); });
 
         float Intensity = LightComponent->GetIntensity();
-        if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 160.0f, "%.1f"))
+        if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%.1f"))
             LightComponent->SetIntensity(Intensity);
 
         float Radius = LightComponent->GetRadius();
@@ -470,8 +470,6 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     {
         LightComponent->SetCastShadows(bCastShadow);
     }
-
-
     
     bool bUsePCF = LightComponent->IsUseShadowPCF();
     ImGui::Checkbox("bUsePCF", &bUsePCF);
