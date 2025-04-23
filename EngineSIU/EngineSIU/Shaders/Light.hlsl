@@ -446,9 +446,9 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     return Lit * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint ShadowMapIndices[8])
+float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint LightIndex, inout uint ShadowMapIndices[8])
 {
-    float bias = 0.001;
+    //float bias = 0.001;
 
     float BiasStep = 0.000001f;
     float MinBias = 0.0f;
@@ -519,6 +519,18 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
         //float refDepth = clipPos.z / clipPos.w - bias;
         float refDepth = clipPos.z / clipPos.w;
         
+        // Bias 적용
+        float NdotL = saturate(dot(normalize(WorldNormal), normalize(PointLights[TargetIndex].Position - WorldPosition)));
+        
+        float ViewSpaceDepth = length(LightViewPos.xyz);
+        
+        float Bias = p.ShadowInfo.ShadowBias * 0.0005f; // 기본 Bias는 작게
+        float SlopeBias = p.ShadowInfo.ShadowSlopeBias * (1.0 - NdotL) * 0.005f;
+        Bias += SlopeBias;
+        Bias += BiasStep * (1.0 - saturate(ViewSpaceDepth / p.Radius));
+        
+        refDepth = saturate(refDepth - Bias);
+        
         if (p.ShadowInfo.bUseShadowPCF == 0)
         {
             Result = SamplePointLIghtShadowMap(ShadowResolutionLevel, float4(LightDirection, ShadowMapIndices[ShadowResolutionLevel]), refDepth).r;
@@ -548,7 +560,19 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
             0.5f + (LightClipSpacePos.x / LightClipSpacePos.w) / 2.f,
             0.5f - (LightClipSpacePos.y / LightClipSpacePos.w) / 2.f
         };
+        
+        FShadowInfo ShadowInfo = DirectionalLights[TargetIndex].ShadowInfo;
+        
+        float NdotL = saturate(dot(normalize(WorldNormal), normalize(DirectionalLights[TargetIndex].Direction)));
+
+        float bias = DirectionalLights[TargetIndex].ShadowInfo.ShadowBias * 0.005f; // 기본 Bias는 작게
+        float slopeBias = DirectionalLights[TargetIndex].ShadowInfo.ShadowSlopeBias * (1.0 - NdotL) * 0.01f;
+        
+        bias += slopeBias;
+        
         float LightDistance = LightClipSpacePos.z / LightClipSpacePos.w;
+        LightDistance -= bias;
+        
         
         bool IsInX = ShadowMapTexCoord.x < 0 || ShadowMapTexCoord.x > 1;
         bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
@@ -588,6 +612,14 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
             return 1.0f;
 
         FSpotLightInfo LightInfo = SpotLights[TargetIndex];
+        
+        float NdotL = saturate(dot(normalize(WorldNormal), normalize(SpotLights[TargetIndex].Direction)));
+        
+        float Bias = SpotLights[TargetIndex].ShadowInfo.ShadowBias * 0.0005f; // 기본 Bias는 작게
+        float SlopeBias = SpotLights[TargetIndex].ShadowInfo.ShadowSlopeBias * (1.0 - NdotL) * 0.005f;
+        Bias += SlopeBias;
+        
+        LightDistance = saturate(LightDistance - Bias);
             
         if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
         {
@@ -622,7 +654,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int k = 0; k < LightCounts; k++)
     {
         LightColor = DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
@@ -640,7 +672,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int i = 0; i < LightCounts; i++)
     {
         LightColor = PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
@@ -656,7 +688,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int j = 0; j < SpotLightsCount; j++)
     {
         LightColor = SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
