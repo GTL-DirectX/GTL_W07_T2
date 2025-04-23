@@ -30,7 +30,7 @@ void ULightComponentBase::SetProperties(const TMap<FString, FString>& InProperti
     TempStr = InProperties.Find(TEXT("Intensity"));
     if (TempStr)
     {
-        Intensity = FCString::Atof(**TempStr++);
+        Intensity = FCString::Atof(**TempStr);
     }
 
     TempStr = InProperties.Find(TEXT("LightColor"));
