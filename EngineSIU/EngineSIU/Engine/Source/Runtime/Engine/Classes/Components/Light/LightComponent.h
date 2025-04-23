@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "LightComponentBase.h"
 #include "SceneTypes.h";
@@ -34,13 +34,12 @@ public:
     void SetShadowSlopeBias(float InShadowSlopeBias) { ShadowSlopeBias = InShadowSlopeBias; }
     float GetShadowSharpen() const { return ShadowSharpen; }
     void SetShadowSharpen(float InShadowSharpen) { ShadowSharpen = InShadowSharpen; }
+    bool IsUseShadowPCF() const { return bUseShadowPCF; }
+    void SetUseShadowPCF(bool bInUseShadowPCF) { bUseShadowPCF = bInUseShadowPCF; }
 
-    EShadowResolutionLevel::Type GetShadowLevel() const { return ShadowResolutionLevel; }
-    void SetShadowLevel(EShadowResolutionLevel::Type InType) { ShadowResolutionLevel = InType; }
-    void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel::Type>(InType); }
-
-    void SetSliceIndex(int32 InSliceIndex) { ShadowSliceIndex = InSliceIndex; }
-    int32 GetShadowSliceIndex() const { return ShadowSliceIndex; }
+    EShadowResolutionLevel GetShadowLevel() const { return ShadowResolutionLevel; }
+    void SetShadowLevel(EShadowResolutionLevel InType) { ShadowResolutionLevel = InType; }
+    void SetShadowLevel(int32 InType) { ShadowResolutionLevel = static_cast<EShadowResolutionLevel>(InType); }
     
 protected:
     // Shadow Map 해상도 비율 조절 값. 1.0 기본, > 1.0 고해상도, < 1.0 저해상도.
@@ -53,7 +52,7 @@ protected:
     // 0.0f = 흐릿한 그림자, 1.0f = 선명한 그림자. 1.0f 이상은 그림자 경계가 날카로워짐.
     float ShadowSharpen;
 
-    EShadowResolutionLevel::Type ShadowResolutionLevel = EShadowResolutionLevel::Medium;
+    bool bUseShadowPCF = true;
 
-    int32 ShadowSliceIndex;
+    EShadowResolutionLevel ShadowResolutionLevel = EShadowResolutionLevel::Medium;
 };

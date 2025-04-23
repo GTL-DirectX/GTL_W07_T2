@@ -170,10 +170,13 @@ FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDir
     LightInfo.LightColor = LightComp->GetLightColor();
     LightInfo.Direction = LightComp->GetDirection();
     LightInfo.Intensity = LightComp->GetIntensity();
-    LightInfo.View = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
-    // TODO : 임의값
-    LightInfo.Projection = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 150);
 
+    for (int i = 0; i < CASCADE_COUNT; i++)
+    {
+        // TODO : 임의값
+        LightInfo.View[i] = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
+        LightInfo.Projection[i] = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 150);
+    }
     LightInfo.ShadowInfo = GetShadowInfo(LightComp);
 
     return LightInfo;
@@ -276,8 +279,8 @@ FShadowInfo FUpdateLightBufferPass::GetShadowInfo(const ULightComponent* LightCo
     ShadowInfo.ShadowBias = LightComp->GetShadowBias();
     ShadowInfo.ShadowSlopeBias = LightComp->GetShadowSlopeBias();
     ShadowInfo.ShadowSharpen = LightComp->GetShadowSharpen();
-    ShadowInfo.ShadowResolutionLevel = LightComp->GetShadowLevel();
-    
+    ShadowInfo.ShadowResolutionLevel = static_cast<uint32>(LightComp->GetShadowLevel());
+    ShadowInfo.bUseShadowPCF = static_cast<int>(LightComp->IsUseShadowPCF());
     return ShadowInfo;
 }
 

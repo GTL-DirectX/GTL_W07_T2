@@ -10,6 +10,8 @@
 #define LIGHT_TYPE_RECT				3 
 #define LIGHT_TYPE_MAX				4 
 
+#define CASCADE_COUNT				4
+
 struct FAmbientLightInfo
 {
     FLinearColor AmbientColor;         // RGB + alpha
@@ -22,8 +24,8 @@ struct FDirectionalLightInfo
     FVector Direction;   // 정규화된 광선 방향 (월드 공간 기준)
     float   Intensity;   // 밝기
 
-    FMatrix View;
-    FMatrix Projection;
+    FMatrix View[CASCADE_COUNT];
+    FMatrix Projection[CASCADE_COUNT];
 
     FShadowInfo ShadowInfo; // 그림자 정보
 };

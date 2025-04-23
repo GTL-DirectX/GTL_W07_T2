@@ -344,13 +344,22 @@ void PropertyEditorPanel::RenderForDirectionalLightComponent(UDirectionalLightCo
 
         ImGui::Spacing();
 
-        ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
-            ->GetActiveViewportClient()
-            ->GetViewportResource()
-            ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize)
-            ->SRV;
-        ImTextureID texId = (ImTextureID)SRV;
-        ImGui::Image(texId, ImVec2(256, 256));
+        for (int i = 0; i < CASCADE_COUNT; i++)
+        {
+            if (i % 2 == 1)
+            {
+                ImGui::SameLine();
+            }
+            
+            ID3D11ShaderResourceView* SRV = GEngineLoop.GetLevelEditor()
+                ->GetActiveViewportClient()
+                ->GetViewportResource()
+                ->GetRenderTarget(EResourceType::ERT_ShadowMapVisualize, i)
+                ->SRV;
+            ImTextureID texId = (ImTextureID)SRV;
+            ImGui::Image(texId, ImVec2(128, 128));
+        }
+        
         ImGui::TreePop();
     }
 
@@ -463,7 +472,13 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     }
 
 
-    //ImGui::SliderFloat;
+    
+    bool bUsePCF = LightComponent->IsUseShadowPCF();
+    ImGui::Checkbox("bUsePCF", &bUsePCF);
+    if (bUsePCF != LightComponent->IsUseShadowPCF())
+    {
+        LightComponent->SetUseShadowPCF(bUsePCF);
+    }
     
     float ShadowResolutionScale = LightComponent->GetShadowResolutionScale();
     ImGui::SliderFloat("ShadowResolutionScale", &ShadowResolutionScale, 0.0f, 8.0f, "%.1f");
@@ -484,9 +499,9 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     if (ImGui::SliderFloat("ShadowSharpen", &ShadowSharpen, 0.0f, 5.0f, "%.3f"))
         LightComponent->SetShadowSharpen(ShadowSharpen);
 
-    int32 ShadowLevel = LightComponent->GetShadowLevel();
-    if (ImGui::SliderInt("Shadow Resolution Level", &ShadowLevel, EShadowResolutionLevel::UltraLow, EShadowResolutionLevel::Extreme))
-        LightComponent->SetShadowLevel(ShadowLevel);
+    int32 ShadowLevel = static_cast<int32>(LightComponent->GetShadowLevel()) + 1;
+    if (ImGui::SliderInt("Shadow Resolution Level", &ShadowLevel, 1, static_cast<int>(EShadowResolutionLevel::Max)))
+        LightComponent->SetShadowLevel(ShadowLevel - 1);
     
     ImGui::PopStyleColor();
 
