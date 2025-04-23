@@ -343,19 +343,20 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
 
     for (int i = 0; i < static_cast<int>(EShadowResolutionLevel::Max); ++i)
     {
-        if (ViewportResource->GetShadowDepthStencils().Contains(EShadowDepthType::ESDT_Directional))
+        EShadowResolutionLevel ShadowResolutionLevel = static_cast<EShadowResolutionLevel>(i);
+        if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Directional, ShadowResolutionLevel))
         {
-            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, static_cast<EShadowResolutionLevel>(i))->SRV);
+            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, ShadowResolutionLevel)->SRV);
         }
 
-        if (ViewportResource->GetShadowDepthStencils().Contains(EShadowDepthType::ESDT_Point))
+        if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Point, ShadowResolutionLevel))
         {
-            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, static_cast<EShadowResolutionLevel>(i))->SRV);
+            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, ShadowResolutionLevel)->SRV);
         }
 
-        if (ViewportResource->GetShadowDepthStencils().Contains(EShadowDepthType::ESDT_Spot))
+        if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Spot, ShadowResolutionLevel))
         {
-            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, static_cast<EShadowResolutionLevel>(i))->SRV);
+            Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, ShadowResolutionLevel)->SRV);
         }
     }
 
