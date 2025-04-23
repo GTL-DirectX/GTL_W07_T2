@@ -23,10 +23,12 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     output.Pos = mul(float4(input.Position, 1.0f), WorldMatrix);
     
     // PSM
-    float4 ClipCam = mul(mul(output.Pos, ViewMatrix), ProjectionMatrix);
-    float4 NDC = ClipCam / ClipCam.w;
+    float4 CamVeiw = mul(output.Pos, ViewMatrix);
+    float4 CamClip = mul(CamVeiw, ProjectionMatrix);
+    float4 NDC = CamClip / CamClip.w;
+    float4 PSM = mul(NDC, InvProjectionMatrix);
     
-    output.Pos = NDC;
+    //output.Pos = CamVeiw;
     
     //output.Pos = mul(output.Pos, ViewMatrix);
     //output.Pos = mul(output.Pos, ProjectionMatrix);
@@ -49,6 +51,8 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ViewMatrix);
         output.Pos = mul(output.Pos, SpotLights[TargetIndex].ProjectionMatrix);
     }
+    
+    //output.Pos = CamClip;
     
     return output;
 }
