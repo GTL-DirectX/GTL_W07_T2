@@ -19,9 +19,11 @@ struct FShadowInfo
     float ShadowBias;
     float ShadowSlopeBias;
     float ShadowSharpen;
+    
     uint ShadowResolutionLevel;
     uint bUseShadowPCF;
-    float2 Padding;
+    uint bCastShadow;
+    float Padding;
 };
 
 struct FAmbientLightInfo
@@ -654,9 +656,13 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int k = 0; k < LightCounts; k++)
     {
         LightColor = DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
-        LightColor *= ShadowMapLight;
+        if (DirectionalLights[k].ShadowInfo.bCastShadow == 1)
+        {
+            ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
+            LightColor *= ShadowMapLight;
+        }
+        
         FinalColor += LightColor;
         
         LightIndex++;
@@ -672,9 +678,13 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int i = 0; i < LightCounts; i++)
     {
         LightColor = PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
-        LightColor *= ShadowMapLight;
+        if (PointLights[i].ShadowInfo.bCastShadow == 1)
+        {
+            ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
+            LightColor *= ShadowMapLight;
+        }
+        
         FinalColor += LightColor;
         
         LightIndex++;
@@ -688,9 +698,13 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int j = 0; j < SpotLightsCount; j++)
     {
         LightColor = SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
         
-        LightColor *= ShadowMapLight;
+        if (SpotLights[j].ShadowInfo.bCastShadow == 1)
+        {
+            ShadowMapLight = GetLightFromShadowMap(WorldPosition, WorldNormal, LightIndex, ShadowMapIndices);
+            LightColor *= ShadowMapLight;
+        }
+        
         FinalColor += LightColor;
         
         LightIndex++;

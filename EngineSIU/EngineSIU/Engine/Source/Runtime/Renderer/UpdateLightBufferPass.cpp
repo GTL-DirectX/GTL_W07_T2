@@ -282,6 +282,7 @@ FShadowInfo FUpdateLightBufferPass::GetShadowInfo(const ULightComponent* LightCo
     ShadowInfo.ShadowSharpen = LightComp->GetShadowSharpen();
     ShadowInfo.ShadowResolutionLevel = static_cast<uint32>(LightComp->GetShadowLevel());
     ShadowInfo.bUseShadowPCF = static_cast<int>(LightComp->IsUseShadowPCF());
+    ShadowInfo.bCastShadow = static_cast<int>(LightComp->IsShadowCasting());
     return ShadowInfo;
 }
 
