@@ -243,7 +243,7 @@ HRESULT FViewportResource::CreateDepthStencilResource(EDepthType Type)
 
 bool FViewportResource::HasRenderTarget(EResourceType Type, uint32 Index) const
 {
-    return RenderTargets.Contains(Type) && RenderTargets[Type].Num() > Index;
+    return RenderTargets.Contains(Type) && RenderTargets[Type].Num() > Index && RenderTargets[Type][Index].Texture2D != nullptr;
 }
 
 HRESULT FViewportResource::CreateShadowDepthStencilResource(EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, uint32 ArrayCount)
@@ -602,6 +602,18 @@ void FViewportResource::ReleaseResource(EResourceType Type, uint32 Index)
     if (HasRenderTarget(Type, Index))
     {
         RenderTargets[Type][Index].Release();
+    }
+}
+
+void FViewportResource::ReleaseResources(EResourceType Type) 
+{
+    if (HasRenderTarget(Type))
+    {
+        for (auto& RenderTarget : RenderTargets[Type])
+        {
+            RenderTarget.Release();
+        }
+        RenderTargets[Type].Empty();
     }
 }
 

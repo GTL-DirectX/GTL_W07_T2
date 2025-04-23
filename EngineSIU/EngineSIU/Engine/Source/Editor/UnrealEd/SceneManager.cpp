@@ -196,6 +196,7 @@ FSceneData SceneManager::WorldToSceneData(const UWorld& InWorld)
 {
     FSceneData sceneData;
     sceneData.Version = 1;
+    sceneData.NextUUID = UEngineStatics::NextUUID;
 
     const TArray<AActor*>& Actors =  InWorld.GetActiveLevel()->Actors;
 
@@ -249,7 +250,8 @@ bool SceneManager::LoadWorldFromData(const FSceneData& sceneData, UWorld* target
     // 임시 맵: 저장된 ID와 새로 생성된 객체 포인터를 매핑
     TMap<FString, AActor*> SpawnedActorsMap;
     //TMap<FString, UActorComponent*> SpawnedComponentsMap;
-    
+
+    UEngineStatics::NextUUID = sceneData.NextUUID;
 
     // --- 1단계: 액터 및 컴포넌트 생성 ---
     UE_LOG(LogLevel::Display, TEXT("Loading Scene Data: Phase 1 - Spawning Actors and Components..."));
