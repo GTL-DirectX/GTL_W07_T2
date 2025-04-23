@@ -74,6 +74,7 @@ struct PS_INPUT_StaticMesh
     float2 UV : TEXCOORD0;
     float3 WorldPosition : TEXCOORD1;
     float3 WorldViewPosition : TEXCOORD2;
+    float4 ShadowPos : TEXCOORD3;
     float3x3 TBN : TBN;
     int MaterialIndex : MATERIAL_INDEX;
 };

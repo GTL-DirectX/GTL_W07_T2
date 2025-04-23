@@ -4,7 +4,7 @@
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float4 ShadowPos : TexCOORD0;
+    //float4 ShadowPos : TexCOORD0;
     float2 UV : TEXCOORD1;
 };
 
@@ -23,7 +23,14 @@ VS_OUTPUT mainVS(VS_INPUT_StaticMesh input)
     output.Pos = mul(float4(input.Position, 1.0f), WorldMatrix);
     
     // PSM
-    //output.Pos = mul(output.Pos, InvViewMatrix);
+    float4 ClipCam = mul(mul(output.Pos, ViewMatrix), ProjectionMatrix);
+    float4 ViewCam = mul(ClipCam, InvProjectionMatrix);
+    float4 WorldCam = mul(ViewCam, InvViewMatrix);
+    
+    output.Pos = WorldCam;
+    
+    //output.Pos = mul(output.Pos, ViewMatrix);
+    //output.Pos = mul(output.Pos, ProjectionMatrix);
     
     if (DirectionalLightsCount > LightIndex)
     {

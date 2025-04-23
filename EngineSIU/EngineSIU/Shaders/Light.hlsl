@@ -229,7 +229,7 @@ float3 DirectionalLight(int nIndex, float3 WorldPosition, float3 WorldNormal, fl
     return Lit * LightInfo.Intensity * LightInfo.LightColor.rgb;
 }
 
-float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint ShadowMapIndices[8])
+float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint ShadowMapIndices[8], float4 ShadowPos)
 {
     float bias = 0.001;
 
@@ -393,20 +393,24 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
     }
     else
     {
+        float4 InputPosition = float4(WorldPosition, 1.0f);
+
+        InputPosition = ShadowPos;
+        
         float4 LightViewPos;
         float4 LightClipSpacePos;
         if (bIsDirectional)
         {
             float4x4 LightViewMatrix = DirectionalLights[TargetIndex].ViewMatrix;
             float4x4 LightProjectionMatrix = DirectionalLights[TargetIndex].ProjectionMatrix;
-            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+            LightViewPos = mul(InputPosition, LightViewMatrix);
             LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
         }
         else if (bIsSpot)
         {
             float4x4 LightViewMatrix = SpotLights[TargetIndex].ViewMatrix;
             float4x4 LightProjectionMatrix = SpotLights[TargetIndex].ProjectionMatrix;
-            LightViewPos = mul(float4(WorldPosition, 1.0f), LightViewMatrix);
+            LightViewPos = mul(InputPosition, LightViewMatrix);
             LightClipSpacePos = mul(LightViewPos, LightProjectionMatrix);
         }
 
@@ -527,9 +531,9 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
     return Result;
 }
 
-float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess, out float ShadowMapLight)
+float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition, float3 DiffuseColor, float3 SpecularColor, float Shininess, float4 ShadowPos)
 {
-    ShadowMapLight = 0;
+    float ShadowMapLight = 0;
     uint ShadowMapLightCount = 0;
 
     float3 LightColor = float3(0.0, 0.0, 0.0);
@@ -542,7 +546,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int k = 0; k < DirectionalLightsCount; k++)
     {
         LightColor = DirectionalLight(k, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices, ShadowPos);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
@@ -557,7 +561,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int i = 0; i < PointLightsCount; i++)
     {
         LightColor = PointLight(i, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices, ShadowPos);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
@@ -572,7 +576,7 @@ float3 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     for (int j = 0; j < SpotLightsCount; j++)
     {
         LightColor = SpotLight(j, WorldPosition, WorldNormal, WorldViewPosition, DiffuseColor, SpecularColor, Shininess);
-        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices);
+        ShadowMapLight = GetLightFromShadowMap(WorldPosition, LightIndex, ShadowMapIndices, ShadowPos);
         
         LightColor *= ShadowMapLight;
         FinalColor += LightColor;
