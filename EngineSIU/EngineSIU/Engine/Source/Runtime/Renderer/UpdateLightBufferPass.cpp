@@ -177,7 +177,7 @@ FDirectionalLightInfo FUpdateLightBufferPass::GetDirectionalLightInfo(const UDir
     {
         // TODO : 임의값
         LightInfo.View[i] = JungleMath::CreateViewMatrix(eyePos, targetPos, UpVector);
-        LightInfo.Projection[i] = JungleMath::CreateOrthoProjectionMatrix(100, 100, 0.1f, 150);
+        LightInfo.Projection[i] = JungleMath::CreateOrthoProjectionMatrix(400, 400, 0.1f, 300);
     }
     LightInfo.ShadowInfo = GetShadowInfo(LightComp);
 

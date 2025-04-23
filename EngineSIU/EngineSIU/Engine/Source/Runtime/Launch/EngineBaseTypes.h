@@ -4,14 +4,14 @@
 
 enum class EViewModeIndex : uint8
 {
-    VMI_Lit_Gouraud,
-    VMI_Lit_Lambert,
-    VMI_Lit_BlinnPhong,
-    VMI_Unlit, // Lit 모드는 이 위에 추가해주세요.
-    VMI_Wireframe,
-    VMI_SceneDepth,
-    VMI_WorldNormal,
-    VMI_MAX,
+    VMI_Lit_Gouraud = 0,
+    VMI_Lit_Lambert = 1,
+    VMI_Lit_BlinnPhong = 2,
+    VMI_Unlit = 3, // Lit 모드는 이 위에 추가해주세요.
+    VMI_Wireframe = 4,
+    VMI_SceneDepth = 5,
+    VMI_WorldNormal = 6,
+    VMI_MAX = 16,
 };
 
 

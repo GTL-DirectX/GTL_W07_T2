@@ -338,6 +338,7 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
     
     PrepareRenderState(Viewport);
 
+    Graphics->DeviceContext->VSSetSamplers(2, 1, &ShadowSampler);
     Graphics->DeviceContext->PSSetSamplers(2, 1, &ShadowSampler);
 
 
@@ -346,16 +347,19 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
         EShadowResolutionLevel ShadowResolutionLevel = static_cast<EShadowResolutionLevel>(i);
         if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Directional, ShadowResolutionLevel))
         {
+            Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, ShadowResolutionLevel)->SRV);
             Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Directional, ShadowResolutionLevel)->SRV);
         }
 
         if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Point, ShadowResolutionLevel))
         {
+            Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, ShadowResolutionLevel)->SRV);
             Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Point, ShadowResolutionLevel)->SRV);
         }
 
         if (ViewportResource->HasShadowDepthStencil(EShadowDepthType::ESDT_Spot, ShadowResolutionLevel))
         {
+            Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, ShadowResolutionLevel)->SRV);
             Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, &ViewportResource->GetShadowDepthStencil(EShadowDepthType::ESDT_Spot, ShadowResolutionLevel)->SRV);
         }
     }
@@ -412,6 +416,10 @@ void FStaticMeshRenderPass::Render(const std::shared_ptr<FEditorViewportClient>&
         Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, NullSRV);
         Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, NullSRV);
         Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, NullSRV);
+
+        Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalShadowMap) + i, 1, NullSRV);
+        Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PointShadowMap) + i, 1, NullSRV);
+        Graphics->DeviceContext->VSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SpotShadowMap) + i, 1, NullSRV);
     }
     
     // 렌더 타겟 해제
