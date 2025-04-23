@@ -547,7 +547,6 @@ float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint Light
                 refDepth
             ).r;            
         }
-        ShadowMapIndices[ShadowResolutionLevel]++;
     }
     else if (bIsDirectional)
     {
@@ -580,7 +579,10 @@ float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint Light
         bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
     
         if (IsInX || IsInY || LightDistance > 1)
+        {
+            ShadowMapIndices[ShadowResolutionLevel]++;
             return 1.0f;
+        }
 
         FDirectionalLightInfo LightInfo = DirectionalLights[TargetIndex];
         if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
@@ -591,8 +593,6 @@ float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint Light
         {
             Result = SampleDirectionalShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
         }
-            
-        ShadowMapIndices[ShadowResolutionLevel]++;
     }
     else if (bIsSpot)
     {
@@ -611,7 +611,10 @@ float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint Light
         bool IsInY = ShadowMapTexCoord.y < 0 || ShadowMapTexCoord.y > 1;
     
         if (IsInX || IsInY || LightDistance > 1)
+        {
+            ShadowMapIndices[ShadowResolutionLevel]++;
             return 1.0f;
+        }
 
         FSpotLightInfo LightInfo = SpotLights[TargetIndex];
         
@@ -631,9 +634,9 @@ float GetLightFromShadowMap(float3 WorldPosition, float3 WorldNormal, uint Light
         {
             Result = SampleSpotLightShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
         }
-        ShadowMapIndices[ShadowResolutionLevel]++;
     }
     
+    ShadowMapIndices[ShadowResolutionLevel]++;
     return Result;
 }
 
