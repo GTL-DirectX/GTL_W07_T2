@@ -164,12 +164,12 @@ public:
     void ClearShadowDepthStencil(ID3D11DeviceContext* DeviceContext, EShadowDepthType Type, uint32 DSVIndex, EShadowResolutionLevel
                                  ShadowResolutionLevel);
 
-    void UpdateShadowMapCapacity(EShadowDepthType Type, uint32 LightCount);
+    void UpdateShadowMapCapacity(EShadowDepthType Type, EShadowResolutionLevel ShadowResolutionLevel, uint32 LightCount);
     
     std::array<float, 4> GetClearColor(EResourceType Type) const;
 
     uint32 GetResolution(EShadowResolutionLevel Type);
-    
+
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};

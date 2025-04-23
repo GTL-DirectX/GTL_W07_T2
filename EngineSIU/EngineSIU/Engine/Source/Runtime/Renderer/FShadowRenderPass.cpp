@@ -75,9 +75,44 @@ void FShadowRenderPass::ReleaseShader()
 void FShadowRenderPass::UpdateShadowMapSize(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Directional, DirectionalLights.Num());
-    ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Point,PointLights.Num());
-    ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Spot, SpotLights.Num());
+    {
+        uint32 ShadowMapIndices[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < DirectionalLights.Num(); i++)
+        {
+            ShadowMapIndices[static_cast<uint32>(DirectionalLights[i]->GetShadowLevel())]++;
+        }
+
+        for (uint32 i = 0; i < static_cast<uint32>(EShadowResolutionLevel::Max); i++)
+        {
+            ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Directional, static_cast<EShadowResolutionLevel>(i), ShadowMapIndices[i]);
+        }
+    }
+
+    {
+        uint32 ShadowMapIndices[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < PointLights.Num(); i++)
+        {
+            ShadowMapIndices[static_cast<uint32>(PointLights[i]->GetShadowLevel())]++;
+        }
+
+        for (uint32 i = 0; i < static_cast<uint32>(EShadowResolutionLevel::Max); i++)
+        {
+            ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Point, static_cast<EShadowResolutionLevel>(i), ShadowMapIndices[i]);
+        }
+    }
+
+    {
+        uint32 ShadowMapIndices[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < SpotLights.Num(); i++)
+        {
+            ShadowMapIndices[static_cast<uint32>(SpotLights[i]->GetShadowLevel())]++;
+        }
+
+        for (uint32 i = 0; i < static_cast<uint32>(EShadowResolutionLevel::Max); i++)
+        {
+            ViewportResource->UpdateShadowMapCapacity(EShadowDepthType::ESDT_Spot, static_cast<EShadowResolutionLevel>(i), ShadowMapIndices[i]);
+        }
+    }
 }
 
 void FShadowRenderPass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -129,7 +164,6 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
 
     auto* TargetShadowRHI = ViewportResource->GetShadowDepthStencil(Type, ShadowResolutionLevel);
     
-    /***********************임시 추후 수정 필요/***********************/
     uint32 Resolution = ViewportResource->GetResolution(ShadowResolutionLevel);
     D3D11_VIEWPORT ShadowViewport;
 
@@ -140,7 +174,6 @@ void FShadowRenderPass::PrepareRenderState(const std::shared_ptr<FEditorViewport
     ShadowViewport.TopLeftX = 0;
     ShadowViewport.TopLeftY = 0;
     Graphics->DeviceContext->RSSetViewports(1, &ShadowViewport);
-    /***********************임시 추후 수정 필요/***********************/
 
     ViewportResource->ClearShadowDepthStencil(Graphics->DeviceContext, Type, DSVIndex, ShadowResolutionLevel);
     auto DSV = TargetShadowRHI->DSVs[DSVIndex];
@@ -277,7 +310,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             bIsSelected = true;
         }
-        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UDirectionalLightComponent>() != nullptr)
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UDirectionalLightComponent>() == TargetLight)
         {
             bIsSelected = true;
         }
@@ -289,8 +322,6 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
             RenderMeshComponents();
             LightIndexPerResolution[ShadowLevel]++;
         }
-        
-        LightIndexPerResolution[ShadowLevel]++;
     }
     LightIndexPerResolution.Empty();
 
@@ -315,7 +346,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             bIsSelected = true;
         }
-        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UPointLightComponent>() != nullptr)
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<UPointLightComponent>() == TargetLight)
         {
             bIsSelected = true;
         }
@@ -352,7 +383,7 @@ void FShadowRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
         {
             bIsSelected = true;
         }
-        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<USpotLightComponent>() != nullptr)
+        else if (SelectedActor != nullptr && SelectedActor->GetComponentByClass<USpotLightComponent>() == TargetLight)
         {
             bIsSelected = true;
         }
