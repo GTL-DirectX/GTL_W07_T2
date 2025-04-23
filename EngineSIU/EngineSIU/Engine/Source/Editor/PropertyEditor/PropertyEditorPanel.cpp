@@ -505,7 +505,13 @@ void PropertyEditorPanel::RenderForLightCommon(ULightComponent* LightComponent) 
     }
 
 
-    //ImGui::SliderFloat;
+    
+    bool bUsePCF = LightComponent->IsUseShadowPCF();
+    ImGui::Checkbox("bUsePCF", &bUsePCF);
+    if (bUsePCF != LightComponent->IsUseShadowPCF())
+    {
+        LightComponent->SetUseShadowPCF(bUsePCF);
+    }
     
     float ShadowResolutionScale = LightComponent->GetShadowResolutionScale();
     ImGui::SliderFloat("ShadowResolutionScale", &ShadowResolutionScale, 0.0f, 8.0f, "%.1f");

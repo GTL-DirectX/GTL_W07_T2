@@ -34,6 +34,8 @@ public:
     void SetShadowSlopeBias(float InShadowSlopeBias) { ShadowSlopeBias = InShadowSlopeBias; }
     float GetShadowSharpen() const { return ShadowSharpen; }
     void SetShadowSharpen(float InShadowSharpen) { ShadowSharpen = InShadowSharpen; }
+    bool IsUseShadowPCF() const { return bUseShadowPCF; }
+    void SetUseShadowPCF(bool bInUseShadowPCF) { bUseShadowPCF = bInUseShadowPCF; }
 
     EShadowResolutionLevel GetShadowLevel() const { return ShadowResolutionLevel; }
     void SetShadowLevel(EShadowResolutionLevel InType) { ShadowResolutionLevel = InType; }
@@ -52,6 +54,8 @@ protected:
     // 그림자 Sharpening 값. 0.0f ~ 1.0f. 그림자 경계 선명도 조절 값.
     // 0.0f = 흐릿한 그림자, 1.0f = 선명한 그림자. 1.0f 이상은 그림자 경계가 날카로워짐.
     float ShadowSharpen;
+
+    bool bUseShadowPCF = true;
 
     int32 ShadowSliceIndex;
     EShadowResolutionLevel ShadowResolutionLevel = EShadowResolutionLevel::Medium;

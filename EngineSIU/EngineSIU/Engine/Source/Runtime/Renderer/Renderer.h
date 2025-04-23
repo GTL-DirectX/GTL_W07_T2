@@ -14,7 +14,6 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDBufferManager.h"
 
-
 class FShadowRenderPass;
 class FPostProcessCompositingPass;
 enum class EResourceType : uint8;

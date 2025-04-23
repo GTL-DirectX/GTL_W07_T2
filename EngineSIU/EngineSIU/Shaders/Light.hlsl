@@ -20,7 +20,8 @@ struct FShadowInfo
     float ShadowSlopeBias;
     float ShadowSharpen;
     uint ShadowResolutionLevel;
-    float3 Padding;
+    uint bUseShadowPCF;
+    float2 Padding;
 };
 
 struct FAmbientLightInfo
@@ -99,6 +100,7 @@ bool InRange(float val, float min, float max)
 void GetDirectionalShadowMapResolution(uint Level, out float Widht, out float Height)
 {
     float Element;
+    [branch]
     switch (Level)
     {
         case 0:
@@ -135,6 +137,7 @@ void GetDirectionalShadowMapResolution(uint Level, out float Widht, out float He
 void GetSpotLightShadowMapResolution(uint Level, out float Widht, out float Height)
 {
     float Element;
+    [branch]
     switch (Level)
     {
         case 0:
@@ -170,6 +173,7 @@ void GetSpotLightShadowMapResolution(uint Level, out float Widht, out float Heig
 
 float SampleDirectionalShadowMap(uint Level, float3 UV, float Depth)
 {
+    [branch]
     if (Level == 0)
         return DirectionalShadowMap[0].SampleCmpLevelZero(ShadowSampler, UV, Depth);
     else if (Level == 1)
@@ -192,6 +196,7 @@ float SampleDirectionalShadowMap(uint Level, float3 UV, float Depth)
 
 float SamplePointLIghtShadowMap(uint Level, float4 UV, float Depth)
 {
+    [branch]
     if (Level == 0)
         return PointShadowMap[0].SampleCmpLevelZero(ShadowSampler, UV, Depth);
     else if (Level == 1)
@@ -214,6 +219,7 @@ float SamplePointLIghtShadowMap(uint Level, float4 UV, float Depth)
 
 float SampleSpotLightShadowMap(uint Level, float3 UV, float Depth)
 {
+    [branch]
     if (Level == 0)
         return SpotShadowMap[0].SampleCmpLevelZero(ShadowSampler, UV, Depth);
     else if (Level == 1)
@@ -514,14 +520,20 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
         //float refDepth = clipPos.z / clipPos.w - bias;
         float refDepth = clipPos.z / clipPos.w;
         
-        //Result = SamplePointLIghtShadowMap(ShadowResolutionLevel, float4(LightDirection, ShadowMapIndices[ShadowResolutionLevel]), refDepth).r;
-        Result = SamplePointLightShadowMapPCF
-        (
-            ShadowResolutionLevel,
-            LightDirection,
-            ShadowMapIndices[ShadowResolutionLevel],
-            refDepth
-        ).r;
+        if (p.ShadowInfo.bUseShadowPCF == 0)
+        {
+            Result = SamplePointLIghtShadowMap(ShadowResolutionLevel, float4(LightDirection, ShadowMapIndices[ShadowResolutionLevel]), refDepth).r;
+        }
+        else
+        {
+            Result = SamplePointLightShadowMapPCF
+            (
+                ShadowResolutionLevel,
+                LightDirection,
+                ShadowMapIndices[ShadowResolutionLevel],
+                refDepth
+            ).r;            
+        }
         ShadowMapIndices[ShadowResolutionLevel]++;
     }
     else
@@ -559,13 +571,27 @@ float GetLightFromShadowMap(float3 WorldPosition, uint LightIndex, inout uint Sh
         {
             FSpotLightInfo LightInfo = SpotLights[TargetIndex];
             
-            Result = SampleSpotLightShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
+            {
+                Result = SampleSpotLightShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            }
+            else
+            {
+                Result = SampleSpotLightShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            }
             ShadowMapIndices[ShadowResolutionLevel]++;
         }
         else if (bIsDirectional)
         {
             FDirectionalLightInfo LightInfo = DirectionalLights[TargetIndex];
-            Result = SampleDirectionalShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            if (LightInfo.ShadowInfo.bUseShadowPCF == 0)
+            {
+                Result = SampleDirectionalShadowMap(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            }
+            else
+            {
+                Result = SampleDirectionalShadowMapPCF(ShadowResolutionLevel, float3(ShadowMapTexCoord.x, ShadowMapTexCoord.y, ShadowMapIndices[ShadowResolutionLevel]), LightDistance).r;
+            }
             
             ShadowMapIndices[ShadowResolutionLevel]++;
         }
